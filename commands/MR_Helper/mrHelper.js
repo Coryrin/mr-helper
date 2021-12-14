@@ -160,7 +160,6 @@ async function requestAndFormatData(args) {
 
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
     const table = new ascii().setHeading("Dungeon", "Affix", "More info");
-    console.log(dungeons);
 
     const sortedDungeons = dungeons.sort((a, b) => {
         if (a.potentialScore < b.potentialScore) {

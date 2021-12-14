@@ -1,6 +1,6 @@
 const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.json');
 const { loadCommands } = require('./handler/loadCommands');
+require('dotenv').config();
 
 const client = new Client({ 
     intents: [
@@ -53,4 +53,4 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-client.login(token);
+client.login(process.env.TOKEN);

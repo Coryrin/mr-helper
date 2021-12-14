@@ -1,7 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { default: axios } = require('axios');
 const ascii = require('ascii-table');
-const { MessageEmbed } = require('discord.js');
 
 function parseMessageForArgs(message) {
     const prefix = '!';
@@ -103,6 +102,7 @@ function calculateScores(isFortifiedBest, dungeon) {
         dungeonLongName: dungeon[target].dungeon,
         affix: target,
         totalScore: bestRunScore + altRunScore,
+        keystoneLevel: dungeon[target].mythic_level,
     }
 }
 
@@ -135,7 +135,7 @@ async function requestAndFormatData(args) {
 
     let totalScore = 0;
     let pointsFromAltRuns = 0;
-    const dataToReturn = [];
+    const dungeons = [];
     for (const dungeonName of Object.keys(allDungeons)) {
         const dungeon = allDungeons[dungeonName];
         const isFortifiedBest = dungeon.fortified.isBestRun;
@@ -143,7 +143,7 @@ async function requestAndFormatData(args) {
 
         totalScore += scores.totalScore;
         pointsFromAltRuns += scores.potentialScore;
-        dataToReturn.push(scores);
+        dungeons.push(scores);
     }
 
     console.log('---------------------------------------------------------------------------------------------');
@@ -151,20 +151,37 @@ async function requestAndFormatData(args) {
     console.log(`The max points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
     console.log('---------------------------------------------------------------------------------------------');
 
-    return dataToReturn;
+    return {
+        dungeons: dungeons,
+        totalScore: totalScore,
+        potentialMinScore: pointsFromAltRuns
+    }
 }
 
-function jsonDataToAsciiTable(json) {
+function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
     const table = new ascii().setHeading("Dungeon", "Affix", "More info");
+    console.log(dungeons);
 
-    for (const dungeon of json) {
+    const sortedDungeons = dungeons.sort((a, b) => {
+        if (a.potentialScore < b.potentialScore) {
+            return 1;
+        }
 
+        return -1;
+    });
+
+    for (const dungeon of sortedDungeons) {
+        const affix = dungeon.affix.charAt(0).toUpperCase() + dungeon.affix.slice(1);
         table.addRow(
-            dungeon.dungeonLongName,
-            dungeon.affix,
+            `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
+            affix,
             `You can earn a minimum of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
         );
     }
+
+    table.addRow();
+    table.addRow(`Current score: ${Math.floor(currentScore)}`);
+    table.addRow(`Potential minimum score: ${Math.floor(potentialMinScore)}`);
 
     return table.toString();
 }
@@ -180,10 +197,10 @@ module.exports = {
             return;
         }
 
-        const dungeonData = await requestAndFormatData(args);
+        const allData = await requestAndFormatData(args);
         
-        const dataToSend = jsonDataToAsciiTable(dungeonData);
+        const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
 
-        await interaction.reply(dataToSend);
+        await interaction.reply("```" + dataToSend + "```");
     },
 }

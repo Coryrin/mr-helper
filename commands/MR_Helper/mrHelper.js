@@ -142,7 +142,7 @@ async function requestAndFormatData(args) {
         const scores = calculateScores(isFortifiedBest, dungeon);
 
         totalScore += scores.totalScore;
-        pointsFromAltRuns += scores.potentialScore;
+        pointsFromAltRuns += Math.ceil(scores.potentialScore);
         dungeons.push(scores);
     }
 
@@ -179,8 +179,8 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
     }
 
     table.addRow();
-    table.addRow(`Current score: ${Math.floor(currentScore)}`);
-    table.addRow(`Potential minimum score: ${Math.floor(potentialMinScore)}`);
+    table.addRow(`Current score: ${Math.ceil(currentScore)}`);
+    table.addRow(`Potential minimum score: ${Math.ceil(potentialMinScore)}`);
 
     return table.toString();
 }

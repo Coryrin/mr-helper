@@ -18,5 +18,8 @@
     "dotenv": "^10.0.0",
     "eslint": "^8.4.1",
     "fs": "^0.0.1-security"
+  },
+  "engines": {
+    "node": "16.13.1"
   }
 }

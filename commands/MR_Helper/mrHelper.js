@@ -1,6 +1,24 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { default: axios } = require('axios');
 const ascii = require('ascii-table');
+const { getBaseScoreForKeystoneLevel, getBaseScoreForAffix } = require('../../reusables/functions');
+
+const BASE_SCORE_FOR_COMPLETION = 37.5;
+
+function lookupDungeonFromShortname(shortName) {
+    const dungeons = {
+        'SOA': 'Spires of Ascension',
+        'SD': 'Sanguine Depths',
+        'HOA': 'Halls of Atonement',
+        'NW': 'Necrotic Wake',
+        'DOS': 'De Other Side',
+        'MISTS': 'Mists of Tirna Scithe',
+        'TOP': 'Theater of Pain',
+        'PF': 'Plaguefall',
+    };
+
+    return dungeons.hasOwnProperty(shortName) ? dungeons[shortName] : 'Dungeon name not found!';
+}
 
 function parseMessageForArgs(message) {
     const prefix = '!';
@@ -79,12 +97,25 @@ function getBlankDataStructure() {
     };
 }
 
-function calculateScores(isFortifiedBest, dungeon) {
+function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
+    const dungeonName = lookupDungeonFromShortname(dungeonShortName);
     let target;
+
     if (isFortifiedBest) {
         target = 'fortified';
     } else {
         target = 'tyrannical';
+    }
+
+    if (!dungeon.fortified.score && !dungeon.tyrannical.score) {
+        const score = BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(2) + getBaseScoreForAffix('tyrannical');
+        return {
+            potentialScore: score + (score / 2),
+            dungeonLongName: dungeonName,
+            affix: 'fortified',
+            totalScore: score + (score / 2),
+            keystoneLevel: 2,
+        }
     }
 
     const bestRunScore = dungeon[target].score * 1.5;
@@ -99,7 +130,7 @@ function calculateScores(isFortifiedBest, dungeon) {
 
     return {
         potentialScore: maxAltRun,
-        dungeonLongName: dungeon[target].dungeon,
+        dungeonLongName: dungeonName,
         affix: target,
         totalScore: bestRunScore + altRunScore,
         keystoneLevel: dungeon[target].mythic_level,
@@ -139,7 +170,7 @@ async function requestAndFormatData(args) {
     for (const dungeonName of Object.keys(allDungeons)) {
         const dungeon = allDungeons[dungeonName];
         const isFortifiedBest = dungeon.fortified.isBestRun;
-        const scores = calculateScores(isFortifiedBest, dungeon);
+        const scores = calculateScores(isFortifiedBest, dungeon, dungeonName);
 
         totalScore += scores.totalScore;
         pointsFromAltRuns += Math.ceil(scores.potentialScore);

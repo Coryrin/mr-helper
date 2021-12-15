@@ -113,7 +113,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
             potentialScore: score + (score / 2),
             dungeonLongName: dungeonName,
             affix: 'fortified',
-            totalScore: score + (score / 2),
+            totalScore: 0,
             keystoneLevel: 2,
         }
     }

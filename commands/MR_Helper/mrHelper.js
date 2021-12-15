@@ -227,10 +227,15 @@ module.exports = {
             return;
         }
 
-        const allData = await requestAndFormatData(args);
+        try {
+            const allData = await requestAndFormatData(args);
         
-        const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
-
-        await interaction.reply("```" + dataToSend + "```");
+            const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
+    
+            await interaction.reply("```" + dataToSend + "```");
+        } catch (err) {
+            console.log(err);
+            await interaction.reply('Error getting data from the server. Please try again.');
+        }
     },
 }

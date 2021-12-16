@@ -1,7 +1,12 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { default: axios } = require('axios');
-const ascii = require('ascii-table');
-const { getBaseScoreForKeystoneLevel, getBaseScoreForAffix } = require('../../reusables/functions');
+const { 
+    getBaseScoreForKeystoneLevel, 
+    getBaseScoreForAffix, 
+    buildTableFromJson,
+    sendStructuredResponseToUser,
+    sendEmbeddedMessage,
+} = require('../../reusables/functions');
 
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
@@ -17,7 +22,7 @@ function lookupDungeonFromShortname(shortName) {
         'PF': 'Plaguefall',
     };
 
-    return dungeons.hasOwnProperty(shortName) ? dungeons[shortName] : 'Dungeon name not found!';
+    return Object.prototype.hasOwnProperty.call(dungeons, shortName) ? dungeons[shortName] : 'Dungeon name not found!';
 }
 
 function parseMessageForArgs(message) {
@@ -27,15 +32,31 @@ function parseMessageForArgs(message) {
         name: '',
         realm: '',
         region: 'eu',
-    }
+        isHelpCommand: false,
+        isInfoCommand: false,
+    };
 
     const args = message.content.trim().split(/ + /g);
     const cmd = args[0].slice(prefix.length).toLowerCase();
     const cmdParts = cmd.split(' ');
+
+    const helpIndex = cmdParts.indexOf('--help');
+    if (helpIndex > -1) {
+        dataToReturn.isHelpCommand = true;
+
+        return dataToReturn;
+    }
+
+    const infoIndex = cmdParts.indexOf('--info');
+    if (infoIndex > -1) {
+        dataToReturn.isInfoCommand = true;
+
+        return dataToReturn;
+    }
     
     const nameIndex = cmdParts.indexOf('--name');
     if (nameIndex < 0) {
-        message.channel.send("Please supply a name.");
+        message.channel.send('Please supply a name.');
 
         dataToReturn.error = true;
         return dataToReturn;
@@ -45,7 +66,7 @@ function parseMessageForArgs(message) {
 
     const realmIndex = cmdParts.indexOf('--realm');
     if (realmIndex < 0) {
-        message.channel.send("Please supply a realm.");
+        message.channel.send('Please supply a realm.');
 
         dataToReturn.error = true;
         return dataToReturn;
@@ -115,7 +136,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
             affix: 'fortified',
             totalScore: 0,
             keystoneLevel: 2,
-        }
+        };
     }
 
     const bestRunScore = dungeon[target].score * 1.5;
@@ -126,7 +147,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         altRunScore = dungeon[otherDungeonAffix].score / 2;
     }
 
-    maxAltRun = (bestRunScore / 3) - altRunScore;
+    const maxAltRun = (bestRunScore / 3) - altRunScore;
 
     return {
         potentialScore: maxAltRun,
@@ -134,7 +155,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         affix: target,
         totalScore: bestRunScore + altRunScore,
         keystoneLevel: dungeon[target].mythic_level,
-    }
+    };
 }
 
 async function requestAndFormatData(args) {
@@ -179,18 +200,22 @@ async function requestAndFormatData(args) {
 
     console.log('---------------------------------------------------------------------------------------------');
     console.log(`Current score for ${res.data.name}: ${totalScore}`);
-    console.log(`The max points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
+    console.log(`The minimum points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
     console.log('---------------------------------------------------------------------------------------------');
 
     return {
         dungeons: dungeons,
         totalScore: totalScore,
         potentialMinScore: pointsFromAltRuns
-    }
+    };
 }
 
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
-    const table = new ascii().setHeading("Dungeon", "Affix", "More info");
+    const dungeonData = {
+        title: '',
+        heading: ['Dungeon', 'Affix', 'More info'],
+        rows: []
+    };
 
     const sortedDungeons = dungeons.sort((a, b) => {
         if (a.potentialScore < b.potentialScore) {
@@ -202,18 +227,30 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
 
     for (const dungeon of sortedDungeons) {
         const affix = dungeon.affix.charAt(0).toUpperCase() + dungeon.affix.slice(1);
-        table.addRow(
+
+        dungeonData.rows.push([
             `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
             affix,
             `You can earn a minimum of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
-        );
+        ]); 
     }
 
-    table.addRow();
-    table.addRow(`Current score: ${Math.ceil(currentScore)}`);
-    table.addRow(`Potential minimum score: ${Math.ceil(potentialMinScore)}`);
+    dungeonData.rows.push([]);
+    dungeonData.rows.push([`Current score: ${Math.ceil(currentScore)}`]);
+    dungeonData.rows.push([`Potential minimum score: ${Math.ceil(potentialMinScore)}`]);
 
-    return table.toString();
+    return buildTableFromJson(dungeonData);
+}
+
+function getHelpJson() {
+    return {
+        title: '',
+        heading: ['Argument', 'Description', 'Required'],
+        rows: [
+            ['--name', 'The player\'s name', '✔️'],
+            ['--realm', 'The player\'s realm', '✔️'],
+        ]
+    };
 }
 
 module.exports = {
@@ -223,6 +260,46 @@ module.exports = {
     async execute(interaction, message) {
         const args = parseMessageForArgs(message);
 
+        if (args.isHelpCommand) {
+            const tableString = buildTableFromJson(getHelpJson());
+            const exampleString = buildTableFromJson({
+                title: '',
+                heading: 'Example',
+                rows: [
+                    ['!mr-helper --name ellorett --realm argent-dawn']
+                ]
+            });
+            const output = `\n${tableString}\n\n ${exampleString}`;
+
+            return sendStructuredResponseToUser(interaction, output);
+        }
+
+        if (args.isInfoCommand) {
+            const messageObject = {
+                title: 'Mythic Rating Helper',
+                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by informing them of their most optimal dungeons to run.',
+                author: {
+                    name: 'Coryrin',
+                    link: 'https://www.corymeikle.com/',
+                    img: '',
+                },
+                fields: [
+                    {
+                        name: 'GitHub',
+                        value: '[Code](https://github.com/Coryrin/mr-helper)',
+                        inline: true,
+                    },
+                    {
+                        name: 'Twitter',
+                        value: '[Follow me on Twitter](https://twitter.com/MRatingHelper)',
+                        inline: true,
+                    }
+                ]
+            };
+
+            return sendEmbeddedMessage(message, messageObject);
+        }
+
         if (args.error) {
             return;
         }
@@ -231,11 +308,11 @@ module.exports = {
             const allData = await requestAndFormatData(args);
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
-    
-            await interaction.reply("```" + dataToSend + "```");
+            
+            return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
             console.log(err);
-            await interaction.reply('Error getting data from the server. Please try again.');
+            return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
         }
     },
-}
+};

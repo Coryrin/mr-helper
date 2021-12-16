@@ -20,14 +20,16 @@ function getBaseScoreForAffix(affix) {
 function buildTableFromJson(jsonData) {
     const table = new ascii();
 
-    return tableString = table.fromJSON(jsonData);
+    return table.fromJSON(jsonData);
 }
 
 async function sendStructuredResponseToUser(interaction, response) {
-    await interaction.reply("```" + response + "```");
+    await interaction.reply('```' + response + '```');
 }
 
-exports.getBaseScoreForAffix = getBaseScoreForAffix;
-exports.getBaseScoreForKeystoneLevel = getBaseScoreForKeystoneLevel;
-exports.buildTableFromJson = buildTableFromJson;
-exports.sendStructuredResponseToUser = sendStructuredResponseToUser;
+module.exports = {
+    getBaseScoreForAffix: getBaseScoreForAffix,
+    getBaseScoreForKeystoneLevel: getBaseScoreForKeystoneLevel,
+    buildTableFromJson: buildTableFromJson,
+    sendStructuredResponseToUser: sendStructuredResponseToUser
+};

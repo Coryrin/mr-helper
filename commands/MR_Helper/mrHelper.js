@@ -277,7 +277,7 @@ module.exports = {
             return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
             console.log(err);
-            await interaction.reply('Error getting data from the server. Please try again.');
+            return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
         }
     },
 }

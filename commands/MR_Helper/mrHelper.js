@@ -1,7 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { default: axios } = require('axios');
-const ascii = require('ascii-table');
-const { getBaseScoreForKeystoneLevel, getBaseScoreForAffix } = require('../../reusables/functions');
+const { 
+    getBaseScoreForKeystoneLevel, 
+    getBaseScoreForAffix, 
+    buildTableFromJson,
+    sendStructuredResponseToUser,
+} = require('../../reusables/functions');
 
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
@@ -27,11 +31,19 @@ function parseMessageForArgs(message) {
         name: '',
         realm: '',
         region: 'eu',
+        isHelpCommand: false,
     }
 
     const args = message.content.trim().split(/ + /g);
     const cmd = args[0].slice(prefix.length).toLowerCase();
     const cmdParts = cmd.split(' ');
+
+    const helpIndex = cmdParts.indexOf('--help');
+    if (helpIndex > -1) {
+        dataToReturn.isHelpCommand = true;
+
+        return dataToReturn;
+    }
     
     const nameIndex = cmdParts.indexOf('--name');
     if (nameIndex < 0) {
@@ -190,7 +202,11 @@ async function requestAndFormatData(args) {
 }
 
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
-    const table = new ascii().setHeading("Dungeon", "Affix", "More info");
+    const dungeonData = {
+        title: '',
+        heading: ['Dungeon', 'Affix', 'More info'],
+        rows: []
+    }
 
     const sortedDungeons = dungeons.sort((a, b) => {
         if (a.potentialScore < b.potentialScore) {
@@ -202,18 +218,30 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
 
     for (const dungeon of sortedDungeons) {
         const affix = dungeon.affix.charAt(0).toUpperCase() + dungeon.affix.slice(1);
-        table.addRow(
+
+        dungeonData.rows.push([
             `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
             affix,
             `You can earn a minimum of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
-        );
+        ]); 
     }
 
-    table.addRow();
-    table.addRow(`Current score: ${Math.ceil(currentScore)}`);
-    table.addRow(`Potential minimum score: ${Math.ceil(potentialMinScore)}`);
+    dungeonData.rows.push([]);
+    dungeonData.rows.push([`Current score: ${Math.ceil(currentScore)}`]);
+    dungeonData.rows.push([`Potential minimum score: ${Math.ceil(potentialMinScore)}`]);
 
-    return table.toString();
+    return buildTableFromJson(dungeonData);
+}
+
+function getHelpJson() {
+    return {
+        title: '',
+        heading: ['Argument', 'Description', 'Required'],
+        rows: [
+            ['--name', 'The player\'s name', '✔️'],
+            ['--realm', 'The player\'s realm', '✔️'],
+        ]
+    };
 }
 
 module.exports = {
@@ -223,6 +251,20 @@ module.exports = {
     async execute(interaction, message) {
         const args = parseMessageForArgs(message);
 
+        if (args.isHelpCommand) {
+            const tableString = buildTableFromJson(getHelpJson());
+            const exampleString = buildTableFromJson({
+                title: '',
+                heading: 'Example',
+                rows: [
+                    ['!mr-helper --name ellorett --realm argent-dawn']
+                ]
+            });
+            const output = `\n${tableString}\n\n ${exampleString}`;
+
+            return sendStructuredResponseToUser(interaction, output);
+        }
+
         if (args.error) {
             return;
         }
@@ -231,11 +273,11 @@ module.exports = {
             const allData = await requestAndFormatData(args);
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
-    
-            await interaction.reply("```" + dataToSend + "```");
+            
+            return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
             console.log(err);
-            await interaction.reply('Error getting data from the server. Please try again.');
+            return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
         }
     },
 }

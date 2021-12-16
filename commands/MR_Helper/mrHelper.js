@@ -32,7 +32,7 @@ function parseMessageForArgs(message) {
         realm: '',
         region: 'eu',
         isHelpCommand: false,
-    }
+    };
 
     const args = message.content.trim().split(/ + /g);
     const cmd = args[0].slice(prefix.length).toLowerCase();
@@ -47,7 +47,7 @@ function parseMessageForArgs(message) {
     
     const nameIndex = cmdParts.indexOf('--name');
     if (nameIndex < 0) {
-        message.channel.send("Please supply a name.");
+        message.channel.send('Please supply a name.');
 
         dataToReturn.error = true;
         return dataToReturn;
@@ -57,7 +57,7 @@ function parseMessageForArgs(message) {
 
     const realmIndex = cmdParts.indexOf('--realm');
     if (realmIndex < 0) {
-        message.channel.send("Please supply a realm.");
+        message.channel.send('Please supply a realm.');
 
         dataToReturn.error = true;
         return dataToReturn;
@@ -127,7 +127,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
             affix: 'fortified',
             totalScore: 0,
             keystoneLevel: 2,
-        }
+        };
     }
 
     const bestRunScore = dungeon[target].score * 1.5;
@@ -138,7 +138,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         altRunScore = dungeon[otherDungeonAffix].score / 2;
     }
 
-    maxAltRun = (bestRunScore / 3) - altRunScore;
+    const maxAltRun = (bestRunScore / 3) - altRunScore;
 
     return {
         potentialScore: maxAltRun,
@@ -146,7 +146,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         affix: target,
         totalScore: bestRunScore + altRunScore,
         keystoneLevel: dungeon[target].mythic_level,
-    }
+    };
 }
 
 async function requestAndFormatData(args) {
@@ -191,14 +191,14 @@ async function requestAndFormatData(args) {
 
     console.log('---------------------------------------------------------------------------------------------');
     console.log(`Current score for ${res.data.name}: ${totalScore}`);
-    console.log(`The max points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
+    console.log(`The minimum points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
     console.log('---------------------------------------------------------------------------------------------');
 
     return {
         dungeons: dungeons,
         totalScore: totalScore,
         potentialMinScore: pointsFromAltRuns
-    }
+    };
 }
 
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
@@ -280,4 +280,4 @@ module.exports = {
             return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
         }
     },
-}
+};

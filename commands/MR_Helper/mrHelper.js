@@ -5,6 +5,7 @@ const {
     getBaseScoreForAffix, 
     buildTableFromJson,
     sendStructuredResponseToUser,
+    sendEmbeddedMessage,
 } = require('../../reusables/functions');
 
 const BASE_SCORE_FOR_COMPLETION = 37.5;
@@ -21,7 +22,7 @@ function lookupDungeonFromShortname(shortName) {
         'PF': 'Plaguefall',
     };
 
-    return dungeons.hasOwnProperty(shortName) ? dungeons[shortName] : 'Dungeon name not found!';
+    return Object.prototype.hasOwnProperty.call(dungeons, shortName) ? dungeons[shortName] : 'Dungeon name not found!';
 }
 
 function parseMessageForArgs(message) {
@@ -32,6 +33,7 @@ function parseMessageForArgs(message) {
         realm: '',
         region: 'eu',
         isHelpCommand: false,
+        isInfoCommand: false,
     };
 
     const args = message.content.trim().split(/ + /g);
@@ -41,6 +43,13 @@ function parseMessageForArgs(message) {
     const helpIndex = cmdParts.indexOf('--help');
     if (helpIndex > -1) {
         dataToReturn.isHelpCommand = true;
+
+        return dataToReturn;
+    }
+
+    const infoIndex = cmdParts.indexOf('--info');
+    if (infoIndex > -1) {
+        dataToReturn.isInfoCommand = true;
 
         return dataToReturn;
     }
@@ -206,7 +215,7 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
         title: '',
         heading: ['Dungeon', 'Affix', 'More info'],
         rows: []
-    }
+    };
 
     const sortedDungeons = dungeons.sort((a, b) => {
         if (a.potentialScore < b.potentialScore) {
@@ -263,6 +272,32 @@ module.exports = {
             const output = `\n${tableString}\n\n ${exampleString}`;
 
             return sendStructuredResponseToUser(interaction, output);
+        }
+
+        if (args.isInfoCommand) {
+            const messageObject = {
+                title: 'Mythic Rating Helper',
+                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by informing them of their most optimal dungeons to run.',
+                author: {
+                    name: 'Coryrin',
+                    link: 'https://www.corymeikle.com/',
+                    img: '',
+                },
+                fields: [
+                    {
+                        name: 'GitHub',
+                        value: '[Code](https://github.com/Coryrin/mr-helper)',
+                        inline: true,
+                    },
+                    {
+                        name: 'Twitter',
+                        value: '[Follow me on Twitter](https://twitter.com/MRatingHelper)',
+                        inline: true,
+                    }
+                ]
+            };
+
+            return sendEmbeddedMessage(message, messageObject);
         }
 
         if (args.error) {

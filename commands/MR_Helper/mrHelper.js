@@ -123,9 +123,9 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     let target;
 
     if (isFortifiedBest) {
-        target = 'fortified';
-    } else {
         target = 'tyrannical';
+    } else {
+        target = 'fortified';
     }
 
     if (!dungeon.fortified.score && !dungeon.tyrannical.score) {
@@ -139,12 +139,12 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         };
     }
 
-    const bestRunScore = dungeon[target].score * 1.5;
     let altRunScore = 0;
     const otherDungeonAffix = target === 'fortified' ? 'tyrannical' : 'fortified';
+    const bestRunScore = dungeon[otherDungeonAffix].score * 1.5;
 
-    if (dungeon[otherDungeonAffix].score) {
-        altRunScore = dungeon[otherDungeonAffix].score / 2;
+    if (dungeon[target].score) {
+        altRunScore = dungeon[target].score / 2;
     }
 
     const maxAltRun = (bestRunScore / 3) - altRunScore;
@@ -171,7 +171,7 @@ async function requestAndFormatData(args) {
     for (const dungeon of res.data.mythic_plus_best_runs) {
         dungeon.isBestRun = true;
         const isFortified = dungeon.affixes[0].id === 10;
-        const allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
+        let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
 
         allDungeons[dungeon.short_name][allDungeonsTarget] = dungeon;
     }
@@ -180,7 +180,7 @@ async function requestAndFormatData(args) {
     for (const dungeon of res.data.mythic_plus_alternate_runs) {
         dungeon.isBestRun = false;
         const isFortified = dungeon.affixes[0].id === 10;
-        const allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
+        let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
 
         allDungeons[dungeon.short_name][allDungeonsTarget] = dungeon;
     }
@@ -192,6 +192,7 @@ async function requestAndFormatData(args) {
         const dungeon = allDungeons[dungeonName];
         const isFortifiedBest = dungeon.fortified.isBestRun;
         const scores = calculateScores(isFortifiedBest, dungeon, dungeonName);
+        console.log(scores);
 
         totalScore += scores.totalScore;
         pointsFromAltRuns += Math.ceil(scores.potentialScore);

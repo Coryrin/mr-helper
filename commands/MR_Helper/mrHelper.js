@@ -1,14 +1,22 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { default: axios } = require('axios');
-const { 
-    getBaseScoreForKeystoneLevel, 
-    getBaseScoreForAffix, 
+const {
+    getDungeonScore,
     buildTableFromJson,
     sendStructuredResponseToUser,
     sendEmbeddedMessage,
+    sortDungeonsBy,
 } = require('../../reusables/functions');
 
-const BASE_SCORE_FOR_COMPLETION = 37.5;
+async function getDungeonData(args) {
+    const res = await requestData(args);
+
+    if (args.getAltRuns) {
+        return await getDataForAlternateRuns(res.data);
+    } else if (args.getBestRuns) {
+        return await getDataForBestRuns(res.data);
+    }
+}
 
 function lookupDungeonFromShortname(shortName) {
     const dungeons = {
@@ -34,6 +42,8 @@ function parseMessageForArgs(message) {
         region: 'eu',
         isHelpCommand: false,
         isInfoCommand: false,
+        getAltRuns: true,
+        getBestRuns: false,
     };
 
     const args = message.content.trim().split(/ + /g);
@@ -73,6 +83,12 @@ function parseMessageForArgs(message) {
     }
 
     dataToReturn.realm = cmdParts[realmIndex + 1];
+
+    const bestRunsIndex = cmdParts.indexOf('--best-runs');
+    if (bestRunsIndex > -1) {
+        dataToReturn.getBestRuns = true;
+        dataToReturn.getAltRuns = false;
+    }
     
     return dataToReturn;
 }
@@ -129,7 +145,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     }
 
     if (!dungeon.fortified.score && !dungeon.tyrannical.score) {
-        const score = BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(2) + getBaseScoreForAffix('tyrannical');
+        const score = getDungeonScore(2, [{name: 'tyrannical'}]);
         return {
             potentialScore: score + (score / 2),
             dungeonLongName: dungeonName,
@@ -152,23 +168,101 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     return {
         potentialScore: maxAltRun,
         dungeonLongName: dungeonName,
-        affix: target,
+        affix: otherDungeonAffix,
         totalScore: bestRunScore + altRunScore,
         keystoneLevel: dungeon[target].mythic_level,
     };
 }
 
-async function requestAndFormatData(args) {
+function getTyrannicalOrFortifiedForDungeon(dungeon) {
+    for (const affix of dungeon.affixes) {
+        if (affix.name.toLowerCase() === 'tyrannical') {
+            return 'tyrannical';
+        }
+
+        if (affix.name.toLowerCase() === 'fortified') {
+            return 'fortified';
+        }
+    }
+}
+
+async function requestData(args) {
     const url = buildRequestUrl(args);
-    const res = await axios({
+    return await axios({
         method: 'get',
         url: url,
     });
+}
 
+/**
+ * Calculate the keystone level to run for the current dungeon iteration.
+ * If our highest run was timed, we should aim to increase our dungeons to that + num the key was upgraded by.
+ * If our highest run wasn't timed, but our current iteration is either equal to, or 1 mythic level below the highest run, we should check if we timed our current run, and if so, we'll increase the current dungeon's mythic_level by the num we increased.
+ * If neither of the above are true, we should set our targetted mythic level to be 1 below the highest run.
+ *
+ * @param {Object} highestRun
+ * @param {Object} currentDungeon
+ * @returns number
+ */
+function getKeystoneLevelToRun(highestRun, currentDungeon) {
+    const diffBetweenLevels = highestRun.mythic_level - currentDungeon.mythic_level;
+    let targetKeystoneLevel = currentDungeon.mythic_level + diffBetweenLevels;
+
+    if (
+        (currentDungeon.mythic_level === highestRun.mythic_level
+        || highestRun.mythic_level - currentDungeon.mythic_level === 1)
+        && highestRun.num_keystone_upgrades === 0
+        && currentDungeon.num_keystone_upgrades > 0
+    ) {
+        targetKeystoneLevel += currentDungeon.num_keystone_upgrades;
+    } else if (
+        highestRun.num_keystone_upgrades === 0
+        && highestRun !== currentDungeon
+    ) {
+        targetKeystoneLevel -= 1;
+    } else {
+        targetKeystoneLevel += highestRun.num_keystone_upgrades;
+    }
+
+    return targetKeystoneLevel;
+}
+
+async function getDataForBestRuns(data) {
+    const sortedDungeons = sortDungeonsBy(data.mythic_plus_best_runs, 'mythic_level');
+    const highestRun = sortedDungeons[0];
+    let currentScore = 0;
+    let potentialMinimumScore = 0;
+
+    for (const dungeon of sortedDungeons) {
+        const currentDungeonScore = dungeon.score * 1.5;
+        currentScore += currentDungeonScore;
+
+        dungeon.affix = getTyrannicalOrFortifiedForDungeon(dungeon);
+        dungeon.dungeonLongName = dungeon.dungeon;
+
+        dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
+        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes);
+        dungeon.potentialScore = targetKeystoneDungeonScore - currentDungeonScore;
+
+        potentialMinimumScore += dungeon.potentialScore;
+        console.log(`Running ${dungeon.dungeon} on ${dungeon.keystoneLevel}+ could get you a minimum of ${Math.ceil(dungeon.potentialScore)} rating.`);
+    }
+
+    for (const dungeon of data.mythic_plus_alternate_runs) {
+        currentScore += dungeon.score / 2;
+    }
+
+    return {
+        dungeons: sortedDungeons,
+        totalScore: currentScore,
+        potentialMinScore: potentialMinimumScore,
+    };
+}
+
+async function getDataForAlternateRuns(data) {
     const allDungeons = getBlankDataStructure();
 
-    // best runs
-    for (const dungeon of res.data.mythic_plus_best_runs) {
+    for (const dungeon of data.mythic_plus_best_runs) {
         dungeon.isBestRun = true;
         const isFortified = dungeon.affixes[0].id === 10;
         let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
@@ -176,8 +270,7 @@ async function requestAndFormatData(args) {
         allDungeons[dungeon.short_name][allDungeonsTarget] = dungeon;
     }
 
-    // alternate runs
-    for (const dungeon of res.data.mythic_plus_alternate_runs) {
+    for (const dungeon of data.mythic_plus_alternate_runs) {
         dungeon.isBestRun = false;
         const isFortified = dungeon.affixes[0].id === 10;
         let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
@@ -188,6 +281,7 @@ async function requestAndFormatData(args) {
     let totalScore = 0;
     let pointsFromAltRuns = 0;
     const dungeons = [];
+
     for (const dungeonName of Object.keys(allDungeons)) {
         const dungeon = allDungeons[dungeonName];
         const isFortifiedBest = dungeon.fortified.isBestRun;
@@ -200,7 +294,7 @@ async function requestAndFormatData(args) {
     }
 
     console.log('---------------------------------------------------------------------------------------------');
-    console.log(`Current score for ${res.data.name}: ${totalScore}`);
+    console.log(`Current score for ${data.name}: ${totalScore}`);
     console.log(`The minimum points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
     console.log('---------------------------------------------------------------------------------------------');
 
@@ -218,13 +312,7 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
         rows: []
     };
 
-    const sortedDungeons = dungeons.sort((a, b) => {
-        if (a.potentialScore < b.potentialScore) {
-            return 1;
-        }
-
-        return -1;
-    });
+    const sortedDungeons = sortDungeonsBy(dungeons, 'potentialScore');
 
     for (const dungeon of sortedDungeons) {
         const affix = dungeon.affix.charAt(0).toUpperCase() + dungeon.affix.slice(1);
@@ -250,6 +338,7 @@ function getHelpJson() {
         rows: [
             ['--name', 'The player\'s name', '✔️'],
             ['--realm', 'The player\'s realm', '✔️'],
+            ['--best-runs', 'The player\'s best runs', '❌'],
         ]
     };
 }
@@ -306,7 +395,7 @@ module.exports = {
         }
 
         try {
-            const allData = await requestAndFormatData(args);
+            const allData = await getDungeonData(args);
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
             

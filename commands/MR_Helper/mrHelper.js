@@ -168,9 +168,9 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     return {
         potentialScore: maxAltRun,
         dungeonLongName: dungeonName,
-        affix: otherDungeonAffix,
+        affix: target,
         totalScore: bestRunScore + altRunScore,
-        keystoneLevel: dungeon[target].mythic_level,
+        keystoneLevel: dungeon[otherDungeonAffix].mythic_level,
     };
 }
 

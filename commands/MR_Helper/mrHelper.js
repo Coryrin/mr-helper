@@ -168,7 +168,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     return {
         potentialScore: maxAltRun,
         dungeonLongName: dungeonName,
-        affix: target,
+        affix: otherDungeonAffix,
         totalScore: bestRunScore + altRunScore,
         keystoneLevel: dungeon[target].mythic_level,
     };
@@ -239,7 +239,6 @@ async function getDataForBestRuns(data) {
 
         dungeon.affix = getTyrannicalOrFortifiedForDungeon(dungeon);
         dungeon.dungeonLongName = dungeon.dungeon;
-        dungeon.keystoneLevel = dungeon.mythic_level;
 
         dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
         const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes);

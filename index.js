@@ -18,7 +18,10 @@ client.commands = new Collection();
 loadCommands(client);
 
 const prefix = '!';
-client.on('message', async message => {   
+client.on('message', async message => {
+    if (process.env.DEBUG && message.guild.id !== process.env.TESTING_GUILD_ID) {
+        return;
+    }
 
     const args = message.content.trim().split(/ + /g);
     const cmd = args[0].slice(prefix.length).toLowerCase();

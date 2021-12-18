@@ -1,21 +1,27 @@
 const ascii = require('ascii-table');
 const { MessageEmbed } = require('discord.js');
+require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7.5;
+const SEASONAL_AFFIX = 'tormented';
+const BASE_SCORE_FOR_COMPLETION = 37.5;
 
 const getBaseScoreForKeystoneLevel = (keystoneLevel) => {
-
     return BASE_SCORE_PER_LEVEL * keystoneLevel;
 };
 
-const getBaseScoreForAffix = (affix) => {
-    const seasonalAffix = 'tormented';
+const getBaseScoreForAffixes = (affixes) => {
+    let baseScore = 0;
 
-    if (affix === seasonalAffix) {
-        return BASE_SCORE_PER_LEVEL * 2;
+    for (const affix of affixes) {
+        if (affix.name.toLowerCase() === SEASONAL_AFFIX) {
+            baseScore += BASE_SCORE_PER_LEVEL * 2;
+        } else {
+            baseScore += BASE_SCORE_PER_LEVEL;
+        }
     }
 
-    return BASE_SCORE_PER_LEVEL;
+    return baseScore;
 };
 
 const buildTableFromJson = (jsonData) => {
@@ -25,6 +31,10 @@ const buildTableFromJson = (jsonData) => {
 };
 
 const sendStructuredResponseToUser = async (interaction, response) => {
+    if (process.env.DEBUG) {
+        response += '\n DEBUG';
+    }
+
     await interaction.reply('```' + response + '```');
 };
 
@@ -42,10 +52,24 @@ const sendEmbeddedMessage = (discordMessage, messageObj) => {
     });
 };
 
+const getDungeonScore = (keystoneLevel, keystoneAffixes) => {
+    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes);
+};
+
+const sortDungeonsBy = (dungeons, sortBy) => {
+    return dungeons.sort((a, b) => {
+        if (a[sortBy] < b[sortBy]) {
+            return 1;
+        }
+
+        return -1;
+    });
+};
+
 module.exports = {
-    getBaseScoreForAffix: getBaseScoreForAffix,
-    getBaseScoreForKeystoneLevel: getBaseScoreForKeystoneLevel,
     buildTableFromJson: buildTableFromJson,
     sendStructuredResponseToUser: sendStructuredResponseToUser,
     sendEmbeddedMessage: sendEmbeddedMessage,
+    getDungeonScore: getDungeonScore,
+    sortDungeonsBy: sortDungeonsBy,
 };

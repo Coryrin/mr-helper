@@ -170,7 +170,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         dungeonLongName: dungeonName,
         affix: target,
         totalScore: bestRunScore + altRunScore,
-        keystoneLevel: dungeon[otherDungeonAffix].mythic_level,
+        keystoneLevel: dungeon[target].mythic_level || dungeon[otherDungeonAffix].mythic_level,
     };
 }
 
@@ -286,7 +286,6 @@ async function getDataForAlternateRuns(data) {
         const dungeon = allDungeons[dungeonName];
         const isFortifiedBest = dungeon.fortified.isBestRun;
         const scores = calculateScores(isFortifiedBest, dungeon, dungeonName);
-        console.log(scores);
 
         totalScore += scores.totalScore;
         pointsFromAltRuns += Math.ceil(scores.potentialScore);

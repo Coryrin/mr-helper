@@ -388,7 +388,12 @@ module.exports = {
                         name: 'Twitter',
                         value: '[Follow me on Twitter](https://twitter.com/MRatingHelper)',
                         inline: true,
-                    }
+                    },
+                    {
+                        name: 'Website',
+                        value: '[Check out our website!](https://www.mr-helper.xyz/)',
+                        inline: true,
+                    },
                 ]
             };
 

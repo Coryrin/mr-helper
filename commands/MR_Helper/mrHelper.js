@@ -89,6 +89,11 @@ function parseMessageForArgs(message) {
         dataToReturn.getBestRuns = true;
         dataToReturn.getAltRuns = false;
     }
+
+    const regionIndex = cmdParts.indexOf('--region');
+    if (regionIndex > -1) {
+        dataToReturn.region = cmdParts[regionIndex + 1];
+    }
     
     return dataToReturn;
 }
@@ -206,7 +211,7 @@ async function requestData(args) {
  */
 function getKeystoneLevelToRun(highestRun, currentDungeon) {
     const diffBetweenLevels = highestRun.mythic_level - currentDungeon.mythic_level;
-    let targetKeystoneLevel = currentDungeon.mythic_level + diffBetweenLevels;
+    let targetKeystoneLevel = highestRun.mythic_level;
 
     if (
         (currentDungeon.mythic_level === highestRun.mythic_level
@@ -214,7 +219,7 @@ function getKeystoneLevelToRun(highestRun, currentDungeon) {
         && highestRun.num_keystone_upgrades === 0
         && currentDungeon.num_keystone_upgrades > 0
     ) {
-        targetKeystoneLevel += currentDungeon.num_keystone_upgrades;
+        targetKeystoneLevel += currentDungeon.num_keystone_upgrades - diffBetweenLevels;
     } else if (
         highestRun.num_keystone_upgrades === 0
         && highestRun !== currentDungeon
@@ -338,6 +343,7 @@ function getHelpJson() {
             ['--name', 'The player\'s name', '✔️'],
             ['--realm', 'The player\'s realm', '✔️'],
             ['--best-runs', 'The player\'s best runs', '❌'],
+            ['--region', 'The player\'s region. Defaults to eu', '❌'],
         ]
     };
 }

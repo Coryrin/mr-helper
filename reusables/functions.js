@@ -35,7 +35,11 @@ const sendStructuredResponseToUser = async (interaction, response) => {
         response += '\n DEBUG';
     }
 
-    await interaction.reply('```' + response + '```');
+    try {
+        await interaction.reply('```' + response + '```');
+    } catch (err) {
+        console.log(err);
+    }
 };
 
 const sendEmbeddedMessage = (discordMessage, messageObj) => {

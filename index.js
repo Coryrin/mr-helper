@@ -33,6 +33,8 @@ client.on('message', async message => {
         return;
     }
 
+    console.log(args);
+
     command.execute(message, message);
 });
 

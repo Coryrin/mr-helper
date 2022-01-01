@@ -1,5 +1,6 @@
 const { Client, Collection, Intents } = require('discord.js');
 const { loadCommands } = require('./handler/loadCommands');
+const { prepareMessage } = require('./reusables/functions');
 require('dotenv').config();
 
 const client = new Client({ 
@@ -23,8 +24,9 @@ client.on('message', async message => {
         return;
     }
 
-    const args = message.content.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length).toLowerCase();
+    const formattedMessage = prepareMessage(message);
+    const args = formattedMessage.trim().split(/ + /g);
+    const cmd = args[0].slice(prefix.length);
     const cmdParts = cmd.split(' ');
     const cmdName = cmdParts[0];
 
@@ -34,7 +36,7 @@ client.on('message', async message => {
         return;
     }
 
-    command.execute(message, message);
+    command.execute(message, formattedMessage);
 });
 
 client.on('interactionCreate', async interaction => {

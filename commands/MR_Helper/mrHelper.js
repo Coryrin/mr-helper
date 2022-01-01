@@ -444,8 +444,12 @@ module.exports = {
             
             return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
-            console.log(err);
-            return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
+            let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
+            if (err.response.data) {
+                errorMessageToSend = `Error: ${err.response.data.message}`;
+            }
+
+            return sendStructuredResponseToUser(interaction, errorMessageToSend);
         }
     },
 };

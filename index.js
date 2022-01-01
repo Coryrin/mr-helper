@@ -29,8 +29,6 @@ client.on('message', async message => {
     const cmdName = cmdParts[0];
     const command = client.commands.get(cmdName);
 
-    console.log(args);
-
     if (!command) {
         return;
     }

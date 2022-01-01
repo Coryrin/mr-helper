@@ -104,8 +104,8 @@ function parseMessageForArgs(message) {
         getBestRuns: false,
     };
 
-    const args = message.content.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length);
+    const args = message.trim().split(/ + /g);
+    const cmd = args[0].slice(prefix.length).toLowerCase();
     const cmdParts = cmd.split(' ');
 
     const helpIndex = cmdParts.indexOf('--help');

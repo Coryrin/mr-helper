@@ -24,15 +24,16 @@ client.on('message', async message => {
     }
 
     const args = message.content.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length).toLowerCase();
+    const cmd = args[0].slice(prefix.length);
     const cmdParts = cmd.split(' ');
     const cmdName = cmdParts[0];
-
     const command = client.commands.get(cmdName);
 
     if (!command) {
         return;
     }
+
+    console.log(args);
 
     command.execute(message, message);
 });
@@ -51,7 +52,7 @@ client.on('interactionCreate', async interaction => {
     try {
         await command.execute(interaction);
     } catch (err) {
-        console.error(err);
+        // console.error(err);
         await interaction.reply({content: 'There was an error whilst executing the command.'});
     }
 });

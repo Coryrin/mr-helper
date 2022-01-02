@@ -105,7 +105,7 @@ function parseMessageForArgs(message, messageChannel) {
     };
 
     const args = message.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length).toLowerCase();
+    const cmd = args[0].slice(prefix.length);
     const cmdParts = cmd.split(' ');
 
     const helpIndex = cmdParts.indexOf('--help');
@@ -129,7 +129,9 @@ function parseMessageForArgs(message, messageChannel) {
 
 function buildRequestUrl(args) {
     const name = encodeURIComponent(args.name);
-    return `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
+    const url = `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
+    console.log(url);
+    return url;
 }
 
 function getBlankDataStructure() {

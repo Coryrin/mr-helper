@@ -18,6 +18,64 @@ async function getDungeonData(args) {
     }
 }
 
+function buildArgsDataObject(cmdParts, argsDataObj, message) {
+    let isSimplifiedCommand = false;
+    for (const part of cmdParts) {
+        if (part.includes('/')) {
+            const regionRealmName = part.split('/');
+
+            if (regionRealmName.length < 3) {
+                message.channel.send('Please supply a character in the format of region/realm/name.');
+
+                argsDataObj.error = true;
+
+                return argsDataObj;
+            }
+
+            argsDataObj.region = regionRealmName[0];
+            argsDataObj.realm = regionRealmName[1];
+            argsDataObj.name = regionRealmName[2];
+
+            isSimplifiedCommand = true;
+        }
+    }
+
+    if (!isSimplifiedCommand) {
+        const nameIndex = cmdParts.indexOf('--name');
+        if (nameIndex < 0) {
+            message.channel.send('Please supply a name.');
+
+            argsDataObj.error = true;
+            return argsDataObj;
+        }
+
+        argsDataObj.name = cmdParts[nameIndex + 1];
+
+        const realmIndex = cmdParts.indexOf('--realm');
+        if (realmIndex < 0) {
+            message.channel.send('Please supply a realm.');
+
+            argsDataObj.error = true;
+            return argsDataObj;
+        }
+
+        argsDataObj.realm = cmdParts[realmIndex + 1];
+
+        const regionIndex = cmdParts.indexOf('--region');
+        if (regionIndex > -1) {
+            argsDataObj.region = cmdParts[regionIndex + 1];
+        }
+    }
+
+    const bestRunsIndex = cmdParts.indexOf('--best-runs');
+    if (bestRunsIndex > -1) {
+        argsDataObj.getBestRuns = true;
+        argsDataObj.getAltRuns = false;
+    }
+
+    return argsDataObj;
+}
+
 function lookupDungeonFromShortname(shortName) {
     const dungeons = {
         'SOA': 'Spires of Ascension',
@@ -35,7 +93,7 @@ function lookupDungeonFromShortname(shortName) {
 
 function parseMessageForArgs(message) {
     const prefix = '!';
-    const dataToReturn = {
+    let dataToReturn = {
         error: false,
         name: '',
         realm: '',
@@ -46,8 +104,8 @@ function parseMessageForArgs(message) {
         getBestRuns: false,
     };
 
-    const args = message.content.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length);
+    const args = message.trim().split(/ + /g);
+    const cmd = args[0].slice(prefix.length).toLowerCase();
     const cmdParts = cmd.split(' ');
 
     const helpIndex = cmdParts.indexOf('--help');
@@ -63,37 +121,8 @@ function parseMessageForArgs(message) {
 
         return dataToReturn;
     }
-    
-    const nameIndex = cmdParts.indexOf('--name');
-    if (nameIndex < 0) {
-        message.channel.send('Please supply a name.');
 
-        dataToReturn.error = true;
-        return dataToReturn;
-    }
-
-    dataToReturn.name = cmdParts[nameIndex + 1];
-
-    const realmIndex = cmdParts.indexOf('--realm');
-    if (realmIndex < 0) {
-        message.channel.send('Please supply a realm.');
-
-        dataToReturn.error = true;
-        return dataToReturn;
-    }
-
-    dataToReturn.realm = cmdParts[realmIndex + 1];
-
-    const bestRunsIndex = cmdParts.indexOf('--best-runs');
-    if (bestRunsIndex > -1) {
-        dataToReturn.getBestRuns = true;
-        dataToReturn.getAltRuns = false;
-    }
-
-    const regionIndex = cmdParts.indexOf('--region');
-    if (regionIndex > -1) {
-        dataToReturn.region = cmdParts[regionIndex + 1];
-    }
+    dataToReturn = buildArgsDataObject(cmdParts, dataToReturn, message);
     
     return dataToReturn;
 }
@@ -341,8 +370,8 @@ function getHelpJson() {
         title: '',
         heading: ['Argument', 'Description', 'Required'],
         rows: [
-            ['--name', 'The player\'s name', '✔️'],
-            ['--realm', 'The player\'s realm', '✔️'],
+            ['--name', 'The player\'s name. Not required if you pass the player\'s name through in region/realm/character format.', '✔️'],
+            ['--realm', 'The player\'s realm. Not required if you pass the player\'s realm through in region/realm/character format.', '✔️'],
             ['--best-runs', 'The player\'s best runs', '❌'],
             ['--region', 'The player\'s region. Defaults to eu', '❌'],
         ]
@@ -360,9 +389,12 @@ module.exports = {
             const tableString = buildTableFromJson(getHelpJson());
             const exampleString = buildTableFromJson({
                 title: '',
-                heading: 'Example',
+                heading: 'Examples',
                 rows: [
-                    ['!mr-helper --name ellorett --realm argent-dawn']
+                    ['!mr-helper --name ellorett --realm argent-dawn'],
+                    ['!mr-helper --name ellorett --realm argent-dawn --best-runs'],
+                    ['!mr-helper eu/argent-dawn/ellorett'],
+                    ['!mr-helper eu/argent-dawn/ellorett --best-runs'],
                 ]
             });
             const output = `\n${tableString}\n\n ${exampleString}`;
@@ -412,8 +444,12 @@ module.exports = {
             
             return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
-            console.log(err);
-            return sendStructuredResponseToUser(interaction, 'There was an error getting data from the server. Please try again.');
+            let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
+            if (err.response.data) {
+                errorMessageToSend = `Error: ${err.response.data.message}`;
+            }
+
+            return sendStructuredResponseToUser(interaction, errorMessageToSend);
         }
     },
 };

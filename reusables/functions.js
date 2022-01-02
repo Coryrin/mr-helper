@@ -42,7 +42,7 @@ const sendStructuredResponseToUser = async (interaction, response) => {
     }
 };
 
-const sendEmbeddedMessage = (discordMessage, messageObj) => {
+const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(messageObj.title)
@@ -51,7 +51,7 @@ const sendEmbeddedMessage = (discordMessage, messageObj) => {
         .addFields(messageObj.fields)
         .setTimestamp();
 
-    discordMessage.channel.send({
+    messageChannel.send({
         embeds: [embedMessage]
     });
 };

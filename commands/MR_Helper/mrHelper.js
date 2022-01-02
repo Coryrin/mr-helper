@@ -430,7 +430,7 @@ module.exports = {
                 ]
             };
 
-            return sendEmbeddedMessage(message, messageObject);
+            return sendEmbeddedMessage(interaction.channel, messageObject);
         }
 
         if (args.error) {

@@ -18,14 +18,14 @@ async function getDungeonData(args) {
     }
 }
 
-function buildArgsDataObject(cmdParts, argsDataObj, message) {
+function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
     let isSimplifiedCommand = false;
     for (const part of cmdParts) {
         if (part.includes('/')) {
             const regionRealmName = part.split('/');
 
             if (regionRealmName.length < 3) {
-                message.channel.send('Please supply a character in the format of region/realm/name.');
+                messageChannel.send('Please supply a character in the format of region/realm/name.');
 
                 argsDataObj.error = true;
 
@@ -43,7 +43,7 @@ function buildArgsDataObject(cmdParts, argsDataObj, message) {
     if (!isSimplifiedCommand) {
         const nameIndex = cmdParts.indexOf('--name');
         if (nameIndex < 0) {
-            message.channel.send('Please supply a name.');
+            messageChannel.send('Please supply a name.');
 
             argsDataObj.error = true;
             return argsDataObj;
@@ -53,7 +53,7 @@ function buildArgsDataObject(cmdParts, argsDataObj, message) {
 
         const realmIndex = cmdParts.indexOf('--realm');
         if (realmIndex < 0) {
-            message.channel.send('Please supply a realm.');
+            messageChannel.send('Please supply a realm.');
 
             argsDataObj.error = true;
             return argsDataObj;
@@ -91,7 +91,7 @@ function lookupDungeonFromShortname(shortName) {
     return Object.prototype.hasOwnProperty.call(dungeons, shortName) ? dungeons[shortName] : 'Dungeon name not found!';
 }
 
-function parseMessageForArgs(message) {
+function parseMessageForArgs(message, messageChannel) {
     const prefix = '!';
     let dataToReturn = {
         error: false,
@@ -122,7 +122,7 @@ function parseMessageForArgs(message) {
         return dataToReturn;
     }
 
-    dataToReturn = buildArgsDataObject(cmdParts, dataToReturn, message);
+    dataToReturn = buildArgsDataObject(cmdParts, dataToReturn, messageChannel);
     
     return dataToReturn;
 }
@@ -383,7 +383,7 @@ module.exports = {
         .setName('mr-helper')
         .setDescription('Get dungeons to run to improve overall mythic rating'),
     async execute(interaction, message) {
-        const args = parseMessageForArgs(message);
+        const args = parseMessageForArgs(message, interaction.channel);
 
         if (args.isHelpCommand) {
             const tableString = buildTableFromJson(getHelpJson());

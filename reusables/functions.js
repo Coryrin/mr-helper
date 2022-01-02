@@ -75,7 +75,7 @@ const prepareMessage = (message) => {
     const channelPrefixes = message.channel.topic;
     let allPrefixes = [];
 
-    if (channelPrefixes !== '') {
+    if (channelPrefixes !== null) {
         allPrefixes = channelPrefixes.split(' ');
     }
 

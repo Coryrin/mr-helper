@@ -51,9 +51,13 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
         .addFields(messageObj.fields)
         .setTimestamp();
 
-    messageChannel.send({
-        embeds: [embedMessage]
-    });
+    try {
+        messageChannel.send({
+            embeds: [embedMessage]
+        });
+    } catch (err) {
+        console.log('Error sending embedded message: ', err);
+    }
 };
 
 const getDungeonScore = (keystoneLevel, keystoneAffixes) => {

@@ -429,6 +429,10 @@ module.exports = {
                         value: '[Check out our website!](https://www.mr-helper.xyz/)',
                         inline: true,
                     },
+                    {
+                        name: 'Support',
+                        value: '[Please consider supporting us](https://ko-fi.com/mythicratinghelper)',
+                    }
                 ]
             };
 

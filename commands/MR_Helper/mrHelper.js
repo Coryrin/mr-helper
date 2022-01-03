@@ -258,7 +258,7 @@ function getKeystoneLevelToRun(highestRun, currentDungeon) {
     ) {
         targetKeystoneLevel -= 1;
     } else {
-        targetKeystoneLevel += highestRun.num_keystone_upgrades;
+        targetKeystoneLevel += highestRun.num_keystone_upgrades - diffBetweenLevels;
     }
 
     return targetKeystoneLevel;

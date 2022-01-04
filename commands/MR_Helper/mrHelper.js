@@ -451,7 +451,7 @@ module.exports = {
             return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
-            if (err.response.data) {
+            if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
 

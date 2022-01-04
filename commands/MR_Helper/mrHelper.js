@@ -195,6 +195,9 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     let altRunScore = 0;
     const otherDungeonAffix = target === 'fortified' ? 'tyrannical' : 'fortified';
     const bestRunScore = dungeon[otherDungeonAffix].score * 1.5;
+    const targettedKeystoneLevel = dungeon[otherDungeonAffix].num_keystone_upgrades > 0
+        ? dungeon[otherDungeonAffix].mythic_level
+        : dungeon[otherDungeonAffix].mythic_level - 1;
 
     if (dungeon[target].score) {
         altRunScore = dungeon[target].score / 2;
@@ -207,7 +210,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         dungeonLongName: dungeonName,
         affix: target,
         totalScore: bestRunScore + altRunScore,
-        keystoneLevel: dungeon[target].mythic_level || dungeon[otherDungeonAffix].mythic_level,
+        keystoneLevel: targettedKeystoneLevel,
     };
 }
 
@@ -362,7 +365,7 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
 
     dungeonData.rows.push([]);
     dungeonData.rows.push([`Current score: ${Math.ceil(currentScore)}`]);
-    dungeonData.rows.push([`Potential minimum score: ${Math.ceil(potentialMinScore)}`]);
+    dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
 
     return buildTableFromJson(dungeonData);
 }

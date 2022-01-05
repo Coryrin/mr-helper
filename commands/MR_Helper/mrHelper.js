@@ -6,6 +6,7 @@ const {
     sendStructuredResponseToUser,
     sendEmbeddedMessage,
     sortDungeonsBy,
+    getKeystoneLevelToRun,
 } = require('../../reusables/functions');
 
 async function getDungeonData(args) {
@@ -234,39 +235,6 @@ async function requestData(args) {
     });
 }
 
-/**
- * Calculate the keystone level to run for the current dungeon iteration.
- * If our highest run was timed, we should aim to increase our dungeons to that + num the key was upgraded by.
- * If our highest run wasn't timed, but our current iteration is either equal to, or 1 mythic level below the highest run, we should check if we timed our current run, and if so, we'll increase the current dungeon's mythic_level by the num we increased.
- * If neither of the above are true, we should set our targetted mythic level to be 1 below the highest run.
- *
- * @param {Object} highestRun
- * @param {Object} currentDungeon
- * @returns number
- */
-function getKeystoneLevelToRun(highestRun, currentDungeon) {
-    const diffBetweenLevels = highestRun.mythic_level - currentDungeon.mythic_level;
-    let targetKeystoneLevel = highestRun.mythic_level;
-
-    if (
-        (currentDungeon.mythic_level === highestRun.mythic_level
-        || highestRun.mythic_level - currentDungeon.mythic_level === 1)
-        && highestRun.num_keystone_upgrades === 0
-        && currentDungeon.num_keystone_upgrades > 0
-    ) {
-        targetKeystoneLevel += currentDungeon.num_keystone_upgrades - diffBetweenLevels;
-    } else if (
-        highestRun.num_keystone_upgrades === 0
-        && highestRun !== currentDungeon
-    ) {
-        targetKeystoneLevel -= 1;
-    } else {
-        targetKeystoneLevel += highestRun.num_keystone_upgrades - diffBetweenLevels;
-    }
-
-    return targetKeystoneLevel;
-}
-
 async function getDataForBestRuns(data) {
     const sortedDungeons = sortDungeonsBy(data.mythic_plus_best_runs, 'mythic_level');
     const highestRun = sortedDungeons[0];
@@ -285,7 +253,6 @@ async function getDataForBestRuns(data) {
         dungeon.potentialScore = targetKeystoneDungeonScore - currentDungeonScore;
 
         potentialMinimumScore += dungeon.potentialScore;
-        console.log(`Running ${dungeon.dungeon} on ${dungeon.keystoneLevel}+ could get you a minimum of ${Math.ceil(dungeon.potentialScore)} rating.`);
     }
 
     for (const dungeon of data.mythic_plus_alternate_runs) {

@@ -503,7 +503,10 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated
     const scoreOutput = isSimulated ? 'Simulated score' : 'Current score';
     dungeonData.rows.push([]);
     dungeonData.rows.push([`${scoreOutput}: ${Math.ceil(currentScore)}`]);
-    dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
+
+    if (!isSimulated) {
+        dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
+    }
 
     return buildTableFromJson(dungeonData);
 }

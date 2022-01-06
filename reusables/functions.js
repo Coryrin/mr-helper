@@ -100,6 +100,41 @@ const prepareMessage = (message) => {
     return formattedMessage;
 };
 
+/**
+ * Calculate the keystone level to run for the current dungeon iteration.
+ * If our highest run was timed, we should aim to increase our dungeons to that + num the key was upgraded by.
+ * If our highest run wasn't timed, but our current iteration is either equal to, or 1 mythic level below the highest run, we should check if we timed our current run, and if so, we'll increase the current dungeon's mythic_level by the num we increased.
+ * If neither of the above are true, we should set our targetted mythic level to be 1 below the highest run.
+ *
+ * @param {Object} highestRun
+ * @param {Object} currentDungeon
+ * @returns number
+ */
+ const getKeystoneLevelToRun = (highestRun, currentDungeon) => {
+    const diffBetweenLevels = highestRun.mythic_level - currentDungeon.mythic_level;
+    let targetKeystoneLevel = highestRun.mythic_level;
+
+    if (
+        (currentDungeon.mythic_level === highestRun.mythic_level
+        || diffBetweenLevels <= 3)
+        && highestRun.num_keystone_upgrades === 0
+        && currentDungeon.num_keystone_upgrades >= 0
+    ) {
+        targetKeystoneLevel += currentDungeon.num_keystone_upgrades - diffBetweenLevels;
+    } else if (currentDungeon.num_keystone_upgrades === 0) {
+        //
+    } else if (
+        (highestRun.num_keystone_upgrades === 0)
+        && highestRun !== currentDungeon
+    ) {
+        targetKeystoneLevel -= 1;
+    } else {
+        targetKeystoneLevel += highestRun.num_keystone_upgrades - diffBetweenLevels;
+    }
+
+    return targetKeystoneLevel;
+};
+
 module.exports = {
     buildTableFromJson: buildTableFromJson,
     sendStructuredResponseToUser: sendStructuredResponseToUser,
@@ -107,4 +142,5 @@ module.exports = {
     getDungeonScore: getDungeonScore,
     sortDungeonsBy: sortDungeonsBy,
     prepareMessage: prepareMessage,
+    getKeystoneLevelToRun: getKeystoneLevelToRun,
 };

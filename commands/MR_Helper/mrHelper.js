@@ -342,10 +342,8 @@ function getHelpJson() {
         title: '',
         heading: ['Argument', 'Description', 'Required'],
         rows: [
-            ['--name', 'The player\'s name. Not required if you pass the player\'s name through in region/realm/character format.', '✔️'],
-            ['--realm', 'The player\'s realm. Not required if you pass the player\'s realm through in region/realm/character format.', '✔️'],
             ['--best-runs', 'The player\'s best runs', '❌'],
-            ['--region', 'The player\'s region. Defaults to eu', '❌'],
+            ['--info', 'Return general information about the bot', '❌'],
         ]
     };
 }
@@ -363,10 +361,9 @@ module.exports = {
                 title: '',
                 heading: 'Examples',
                 rows: [
-                    ['!mr-helper --name ellorett --realm argent-dawn'],
-                    ['!mr-helper --name ellorett --realm argent-dawn --best-runs'],
                     ['!mr-helper eu/argent-dawn/ellorett'],
                     ['!mr-helper eu/argent-dawn/ellorett --best-runs'],
+                    ['!mr-helper --info'],
                 ]
             });
             const output = `\n${tableString}\n\n ${exampleString}`;

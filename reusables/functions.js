@@ -100,6 +100,7 @@ const prepareMessage = (message) => {
         }
     } catch (err) {
         console.error(err);
+        console.error('ERROR: ', formattedMessage, message);
     }
 
     return formattedMessage;

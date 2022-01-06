@@ -20,7 +20,7 @@ loadCommands(client);
 
 const prefix = '!';
 client.on('message', async message => {
-    if (process.env.DEBUG && message.guild.id !== process.env.TESTING_GUILD_ID) {
+    if (process.env.DEBUG && message.guild.id !== process.env.TESTING_GUILD_ID || !message.content.startsWith(prefix)) {
         return;
     }
 

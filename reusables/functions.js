@@ -76,25 +76,30 @@ const sortDungeonsBy = (dungeons, sortBy) => {
 
 const prepareMessage = (message) => {
     let formattedMessage = message.content;
-    const channelPrefixes = message.channel.topic;
-    let allPrefixes = [];
 
-    if (channelPrefixes !== undefined && channelPrefixes !== '') {
-        allPrefixes = channelPrefixes.split(' ');
-    }
+    try {
+        const channelPrefixes = message.channel.topic;
+        let allPrefixes = [];
 
-    if (!formattedMessage.includes('--realm')) {
-        const realmIndex = allPrefixes.indexOf('--realm');
-        if (realmIndex > -1) {
-            formattedMessage = `${formattedMessage} --realm ${allPrefixes[realmIndex + 1]}`;
+        if (channelPrefixes !== undefined && channelPrefixes !== '') {
+            allPrefixes = channelPrefixes.split(' ');
         }
-    }
 
-    if (!formattedMessage.includes('--region')) {
-        const regionIndex = allPrefixes.indexOf('--region');
-        if (regionIndex > -1) {
-            formattedMessage = `${formattedMessage} --region ${allPrefixes[regionIndex + 1]}`;
+        if (!formattedMessage.includes('--realm')) {
+            const realmIndex = allPrefixes.indexOf('--realm');
+            if (realmIndex > -1) {
+                formattedMessage = `${formattedMessage} --realm ${allPrefixes[realmIndex + 1]}`;
+            }
         }
+
+        if (!formattedMessage.includes('--region')) {
+            const regionIndex = allPrefixes.indexOf('--region');
+            if (regionIndex > -1) {
+                formattedMessage = `${formattedMessage} --region ${allPrefixes[regionIndex + 1]}`;
+            }
+        }
+    } catch (err) {
+        console.error(err);
     }
 
     return formattedMessage;

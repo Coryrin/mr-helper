@@ -6,6 +6,44 @@ const BASE_SCORE_PER_LEVEL = 7.5;
 const SEASONAL_AFFIX = 'tormented';
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
+const getNumAffixesForLevel = (keystoneLevel) => {
+    const keystoneLevelInt = parseInt(keystoneLevel);
+
+    const affixes = [
+        {
+            name: 'tyrannical',
+        },
+        {
+            name: 'bolstering',
+        },
+        {
+            name: 'raging',
+        },
+        {
+            name: SEASONAL_AFFIX,
+        }
+    ];
+
+    if (keystoneLevelInt >= 10) {
+        return affixes;
+    }
+
+    if (keystoneLevelInt >= 7) {
+        affixes.splice(3, 1);
+        return affixes;
+    }
+
+    if (keystoneLevelInt >= 4) {
+        affixes.splice(2, 2);
+        return affixes;
+    }
+
+    if (keystoneLevelInt >= 2) {
+        affixes.splice(1, 3);
+        return affixes;
+    }
+};
+
 const getBaseScoreForKeystoneLevel = (keystoneLevel) => {
     return BASE_SCORE_PER_LEVEL * keystoneLevel;
 };
@@ -27,7 +65,7 @@ const getBaseScoreForAffixes = (affixes) => {
 const buildTableFromJson = (jsonData) => {
     const table = new ascii();
 
-    return table.fromJSON(jsonData);
+    return table.fromJSON(jsonData).toString();
 };
 
 const sendStructuredResponseToUser = async (interaction, response) => {
@@ -141,6 +179,12 @@ const prepareMessage = (message) => {
     return targetKeystoneLevel;
 };
 
+const arrayDiff = (firstArray, ...arrays) => {
+    const allArrays = [].concat.apply([], arrays);
+
+    return firstArray.filter(item => !allArrays.includes(item));
+};
+
 module.exports = {
     buildTableFromJson: buildTableFromJson,
     sendStructuredResponseToUser: sendStructuredResponseToUser,
@@ -149,4 +193,6 @@ module.exports = {
     sortDungeonsBy: sortDungeonsBy,
     prepareMessage: prepareMessage,
     getKeystoneLevelToRun: getKeystoneLevelToRun,
+    getNumAffixesForLevel: getNumAffixesForLevel,
+    arrayDiff: arrayDiff,
 };

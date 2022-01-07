@@ -7,15 +7,19 @@ const {
     sendEmbeddedMessage,
     sortDungeonsBy,
     getKeystoneLevelToRun,
+    getNumAffixesForLevel,
+    arrayDiff,
 } = require('../../reusables/functions');
 
-async function getDungeonData(args) {
+async function getDungeonData(args, interaction) {
     const res = await requestData(args);
 
     if (args.getAltRuns) {
         return await getDataForAlternateRuns(res.data);
     } else if (args.getBestRuns) {
         return await getDataForBestRuns(res.data);
+    } else if (args.isSimulateCommand) {
+        return await simulateLevel(res.data, args.simulateLevel, interaction);
     }
 }
 
@@ -74,6 +78,13 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
         argsDataObj.getAltRuns = false;
     }
 
+    const simulateIndex = cmdParts.indexOf('--simulate');
+    if (simulateIndex > -1) {
+        argsDataObj.isSimulateCommand = true;
+        argsDataObj.getAltRuns = false;
+        argsDataObj.simulateLevel = cmdParts[simulateIndex + 1];
+    }
+
     return argsDataObj;
 }
 
@@ -103,6 +114,8 @@ function parseMessageForArgs(message, messageChannel) {
         isInfoCommand: false,
         getAltRuns: true,
         getBestRuns: false,
+        isSimulateCommand: false,
+        simulateLevel: null,
     };
 
     const args = message.trim().split(/ + /g);
@@ -235,6 +248,159 @@ async function requestData(args) {
     });
 }
 
+function checkRunsForIncompleteData(data, levelToSimulate) {
+    const numDungeonsToRun = 8;
+    const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
+    const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;
+    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP'];
+    const bestRunsDone = [];
+    const altRunsDone = [];
+
+    for (const dungeon of data.mythic_plus_best_runs) {
+        bestRunsDone.push(dungeon.short_name);
+    }
+
+    for (const dungeon of data.mythic_plus_alternate_runs) {
+        altRunsDone.push(dungeon.short_name);
+    }
+
+    const bestRunsToAdd = arrayDiff(allDungeonsShortNames, bestRunsDone);
+    const altRunsToAdd = arrayDiff(allDungeonsShortNames, altRunsDone);
+
+    for (let i = 0; i < numBestRuns; i++) {
+        const dungeonToAdd = {
+            mythic_level: levelToSimulate,
+            score: 0,
+            affix: 'fortified',
+            dungeon: 'Missing temp name',
+            affixes: [
+                {
+                    name: 'fortified'
+                }
+            ],
+        };
+
+        for (let j = 0; j < bestRunsToAdd.length; j++) {
+            dungeonToAdd.dungeon = lookupDungeonFromShortname(bestRunsToAdd[j]);
+            bestRunsToAdd.splice(j, 1);
+            break;
+        }
+
+        data.mythic_plus_best_runs.push(dungeonToAdd);
+    }
+
+    for (let i = 0; i < numAltRuns; i++) {
+        const dungeonToAdd = {
+            mythic_level: levelToSimulate,
+            score: 0,
+            affix: 'tyrannical',
+            dungeon: 'Dungeon name missing.',
+            affixes: [
+                {
+                    name: 'tyrannical'
+                }
+            ],
+        };
+
+        for (let j = 0; j < altRunsToAdd.length; j++) {
+            dungeonToAdd.dungeon = lookupDungeonFromShortname(altRunsToAdd[j]);
+
+            for (const dungeon of data.mythic_plus_best_runs) {
+                if (dungeonToAdd.dungeon === dungeon.dungeon) {
+                    const affix = dungeon.affixes[0].name.toLowerCase() === 'tyrannical' ? 'fortified' : 'tyrannical';
+                    dungeonToAdd.affix = affix;
+                    dungeonToAdd.affixes[0].name = affix;
+                }
+            }
+
+            altRunsToAdd.splice(j, 1);
+            break;
+        }
+
+        data.mythic_plus_alternate_runs.push(dungeonToAdd);
+    }
+
+    return data;
+}
+
+function simulateLevel(data, levelToSimulate, interaction) {
+    let totalScore = 0;
+    data = checkRunsForIncompleteData(data, levelToSimulate);
+
+    const fortifiedDungeons = [];
+    const tyrannicalDungeons = [];
+
+    for (const dungeon of data.mythic_plus_best_runs) {
+        dungeon.affix = dungeon.affixes[0].name;
+        dungeon.dungeonLongName = dungeon.dungeon;
+
+        const affixes = getNumAffixesForLevel(levelToSimulate);
+
+        const score = getDungeonScore(levelToSimulate, affixes);
+
+        const currentScore = dungeon.score * 1.5;
+
+        if (currentScore > score) {
+            dungeon.potentialScore = 0;
+            dungeon.score = currentScore;
+        } else {
+            dungeon.potentialScore = score - currentScore;
+            dungeon.score = score;
+            dungeon.mythic_level = levelToSimulate;
+        }
+
+        dungeon.keystoneLevel = dungeon.mythic_level;
+
+        if (dungeon.affix.toLowerCase() === 'fortified') {
+            fortifiedDungeons.push(dungeon);
+        } else {
+            tyrannicalDungeons.push(dungeon);
+        }
+
+        totalScore += dungeon.score;
+    }
+
+    for (const dungeon of data.mythic_plus_alternate_runs) {
+        dungeon.affix = dungeon.affixes[0].name;
+        dungeon.dungeonLongName = dungeon.dungeon;
+
+        const affixes = getNumAffixesForLevel(levelToSimulate);
+
+        const score = getDungeonScore(levelToSimulate, affixes) / 3;
+
+        const currentScore = (dungeon.score * 1.5) / 3;
+
+        if (currentScore > score) {
+            dungeon.score = currentScore;
+            dungeon.potentialScore = 0;
+        } else {
+            dungeon.potentialScore = score - currentScore;
+            dungeon.score = score;
+            dungeon.mythic_level = levelToSimulate;
+        }
+
+        dungeon.keystoneLevel = dungeon.mythic_level;
+
+        if (dungeon.affix.toLowerCase() === 'fortified') {
+            fortifiedDungeons.push(dungeon);
+        } else {
+            tyrannicalDungeons.push(dungeon);
+        }
+
+        totalScore += dungeon.score;
+    }
+
+    const tyrannicalData = dataToAsciiTable(tyrannicalDungeons, totalScore, 0, true);
+
+    sendStructuredResponseToUser(interaction, tyrannicalData);
+
+    return {
+        dungeons: fortifiedDungeons,
+        totalScore: totalScore,
+        potentialMinScore: 0,
+    };
+}
+
 async function getDataForBestRuns(data) {
     const sortedDungeons = sortDungeonsBy(data.mythic_plus_best_runs, 'mythic_level');
     const highestRun = sortedDungeons[0];
@@ -311,7 +477,7 @@ async function getDataForAlternateRuns(data) {
     };
 }
 
-function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
+function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated=false) {
     const dungeonData = {
         title: '',
         heading: ['Dungeon', 'Affix', 'More info'],
@@ -326,13 +492,17 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore) {
         dungeonData.rows.push([
             `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
             affix,
-            `You can earn a minimum of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
+            `You can earn at least of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
         ]); 
     }
 
+    const scoreOutput = isSimulated ? 'Simulated score' : 'Current score';
     dungeonData.rows.push([]);
-    dungeonData.rows.push([`Current score: ${Math.ceil(currentScore)}`]);
-    dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
+    dungeonData.rows.push([`${scoreOutput}: ${Math.ceil(currentScore)}`]);
+
+    if (!isSimulated) {
+        dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
+    }
 
     return buildTableFromJson(dungeonData);
 }
@@ -342,10 +512,9 @@ function getHelpJson() {
         title: '',
         heading: ['Argument', 'Description', 'Required'],
         rows: [
-            ['--name', 'The player\'s name. Not required if you pass the player\'s name through in region/realm/character format.', '✔️'],
-            ['--realm', 'The player\'s realm. Not required if you pass the player\'s realm through in region/realm/character format.', '✔️'],
             ['--best-runs', 'The player\'s best runs', '❌'],
-            ['--region', 'The player\'s region. Defaults to eu', '❌'],
+            ['--simulate', 'Simulate a player\'s rating for running every dungeon on an input keystone level', '❌'],
+            ['--info', 'Return general information about the bot', '❌'],
         ]
     };
 }
@@ -363,10 +532,10 @@ module.exports = {
                 title: '',
                 heading: 'Examples',
                 rows: [
-                    ['!mr-helper --name ellorett --realm argent-dawn'],
-                    ['!mr-helper --name ellorett --realm argent-dawn --best-runs'],
                     ['!mr-helper eu/argent-dawn/ellorett'],
                     ['!mr-helper eu/argent-dawn/ellorett --best-runs'],
+                    ['!mr-helper eu/argent-dawn/ellorett --simulate 15'],
+                    ['!mr-helper --info'],
                 ]
             });
             const output = `\n${tableString}\n\n ${exampleString}`;
@@ -377,11 +546,11 @@ module.exports = {
         if (args.isInfoCommand) {
             const messageObject = {
                 title: 'Mythic Rating Helper',
-                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by informing them of their most optimal dungeons to run.',
+                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by analyzing their runs, and informing them of their most optimal dungeons to run.',
                 author: {
                     name: 'Coryrin',
                     link: 'https://www.corymeikle.com/',
-                    img: '',
+                    img: 'https://cdn.discordapp.com/attachments/647425968993992715/838076418570452992/20210501_163408.jpg',
                 },
                 fields: [
                     {
@@ -400,6 +569,10 @@ module.exports = {
                         inline: true,
                     },
                     {
+                        name: 'Discord',
+                        value: '[Join the development discord!](https://discord.gg/ucgP4dvmtQ)',
+                    },
+                    {
                         name: 'Support',
                         value: '[Please consider supporting us](https://ko-fi.com/mythicratinghelper)',
                     }
@@ -414,16 +587,17 @@ module.exports = {
         }
 
         try {
-            const allData = await getDungeonData(args);
+            const allData = await getDungeonData(args, interaction);
         
-            const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore);
-            
+            const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore, args.isSimulateCommand);
+
             return sendStructuredResponseToUser(interaction, dataToSend);
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
+            console.log(err);
 
             return sendStructuredResponseToUser(interaction, errorMessageToSend);
         }

@@ -331,17 +331,12 @@ function simulateLevel(data, levelToSimulate, interaction) {
     const tyrannicalDungeons = [];
 
     for (const dungeon of data.mythic_plus_best_runs) {
-        if (dungeon.mythic_level < levelToSimulate) {
-            dungeon.mythic_level = levelToSimulate;
-        }
-
         dungeon.affix = dungeon.affixes[0].name;
         dungeon.dungeonLongName = dungeon.dungeon;
-        dungeon.keystoneLevel = dungeon.mythic_level;
 
-        const affixes = getNumAffixesForLevel(dungeon.mythic_level);
+        const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(dungeon.mythic_level, affixes);
+        const score = getDungeonScore(levelToSimulate, affixes);
 
         const currentScore = dungeon.score * 1.5;
 
@@ -351,7 +346,10 @@ function simulateLevel(data, levelToSimulate, interaction) {
         } else {
             dungeon.potentialScore = score - currentScore;
             dungeon.score = score;
+            dungeon.mythic_level = levelToSimulate;
         }
+
+        dungeon.keystoneLevel = dungeon.mythic_level;
 
         if (dungeon.affix.toLowerCase() === 'fortified') {
             fortifiedDungeons.push(dungeon);
@@ -363,17 +361,12 @@ function simulateLevel(data, levelToSimulate, interaction) {
     }
 
     for (const dungeon of data.mythic_plus_alternate_runs) {
-        if (dungeon.mythic_level < levelToSimulate) {
-            dungeon.mythic_level = levelToSimulate;
-        }
-
         dungeon.affix = dungeon.affixes[0].name;
         dungeon.dungeonLongName = dungeon.dungeon;
-        dungeon.keystoneLevel = dungeon.mythic_level;
 
-        const affixes = getNumAffixesForLevel(dungeon.mythic_level);
+        const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(dungeon.mythic_level, affixes) / 3;
+        const score = getDungeonScore(levelToSimulate, affixes) / 3;
 
         const currentScore = (dungeon.score * 1.5) / 3;
 
@@ -383,7 +376,10 @@ function simulateLevel(data, levelToSimulate, interaction) {
         } else {
             dungeon.potentialScore = score - currentScore;
             dungeon.score = score;
+            dungeon.mythic_level = levelToSimulate;
         }
+
+        dungeon.keystoneLevel = dungeon.mythic_level;
 
         if (dungeon.affix.toLowerCase() === 'fortified') {
             fortifiedDungeons.push(dungeon);

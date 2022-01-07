@@ -374,11 +374,11 @@ module.exports = {
         if (args.isInfoCommand) {
             const messageObject = {
                 title: 'Mythic Rating Helper',
-                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by informing them of their most optimal dungeons to run.',
+                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by analyzing their runs, and informing them of their most optimal dungeons to run.',
                 author: {
                     name: 'Coryrin',
                     link: 'https://www.corymeikle.com/',
-                    img: '',
+                    img: 'https://cdn.discordapp.com/attachments/647425968993992715/838076418570452992/20210501_163408.jpg',
                 },
                 fields: [
                     {
@@ -395,6 +395,10 @@ module.exports = {
                         name: 'Website',
                         value: '[Check out our website!](https://www.mr-helper.xyz/)',
                         inline: true,
+                    },
+                    {
+                        name: 'Discord',
+                        value: '[Join the development discord!](https://discord.gg/ucgP4dvmtQ)',
                     },
                     {
                         name: 'Support',

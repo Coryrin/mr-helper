@@ -80,6 +80,22 @@ const sendStructuredResponseToUser = async (interaction, response) => {
     }
 };
 
+const sendStructuredResponseToUserViaSlashCommand = async (interaction, response, shouldEdit=true) => {
+    if (process.env.DEBUG) {
+        response += '\n DEBUG';
+    }
+
+    try {
+        if (shouldEdit) {
+            await interaction.editReply('```' + response + '```');
+        } else {
+            await interaction.followUp('```' + response + '```');
+        }
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
         .setColor('#0099ff')
@@ -113,7 +129,7 @@ const sortDungeonsBy = (dungeons, sortBy) => {
 };
 
 const prepareMessage = (message) => {
-    let formattedMessage = message.content;
+    let formattedMessage = message.content.substring(1);
 
     try {
         const channelPrefixes = message.channel.topic;
@@ -195,4 +211,5 @@ module.exports = {
     getKeystoneLevelToRun: getKeystoneLevelToRun,
     getNumAffixesForLevel: getNumAffixesForLevel,
     arrayDiff: arrayDiff,
+    sendStructuredResponseToUserViaSlashCommand: sendStructuredResponseToUserViaSlashCommand,
 };

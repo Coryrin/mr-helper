@@ -9,9 +9,10 @@ const {
     getKeystoneLevelToRun,
     getNumAffixesForLevel,
     arrayDiff,
+    sendStructuredResponseToUserViaSlashCommand,
 } = require('../../reusables/functions');
 
-async function getDungeonData(args, interaction) {
+async function getDungeonData(args, interaction, interactionMethod) {
     const res = await requestData(args);
 
     if (args.getAltRuns) {
@@ -19,7 +20,7 @@ async function getDungeonData(args, interaction) {
     } else if (args.getBestRuns) {
         return await getDataForBestRuns(res.data);
     } else if (args.isSimulateCommand) {
-        return await simulateLevel(res.data, args.simulateLevel, interaction);
+        return await simulateLevel(res.data, args.simulateLevel, interaction, interactionMethod);
     }
 }
 
@@ -104,7 +105,6 @@ function lookupDungeonFromShortname(shortName) {
 }
 
 function parseMessageForArgs(message, messageChannel) {
-    const prefix = '!';
     let dataToReturn = {
         error: false,
         name: '',
@@ -119,7 +119,7 @@ function parseMessageForArgs(message, messageChannel) {
     };
 
     const args = message.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length);
+    const cmd = args[0].slice();
     const cmdParts = cmd.split(' ');
 
     const helpIndex = cmdParts.indexOf('--help');
@@ -143,9 +143,7 @@ function parseMessageForArgs(message, messageChannel) {
 
 function buildRequestUrl(args) {
     const name = encodeURIComponent(args.name);
-    const url = `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
-    console.log(url);
-    return url;
+    return `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
 }
 
 function getBlankDataStructure() {
@@ -323,7 +321,7 @@ function checkRunsForIncompleteData(data, levelToSimulate) {
     return data;
 }
 
-function simulateLevel(data, levelToSimulate, interaction) {
+function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
     let totalScore = 0;
     data = checkRunsForIncompleteData(data, levelToSimulate);
 
@@ -392,7 +390,7 @@ function simulateLevel(data, levelToSimulate, interaction) {
 
     const tyrannicalData = dataToAsciiTable(tyrannicalDungeons, totalScore, 0, true);
 
-    sendStructuredResponseToUser(interaction, tyrannicalData);
+    interactionMethod(interaction, tyrannicalData, false);
 
     return {
         dungeons: fortifiedDungeons,
@@ -522,8 +520,19 @@ function getHelpJson() {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('mr-helper')
-        .setDescription('Get dungeons to run to improve overall mythic rating'),
-    async execute(interaction, message) {
+        .setDescription('Get dungeons to run to improve overall mythic rating')
+        .addStringOption(option =>
+            option.setName('command')
+                .setDescription('The command to run. e.g. --help, --info, eu/argent-dawn/ellorett')
+                .setRequired(true)
+        ),
+    async execute(interaction, message, isSlashCommand) {
+        if (isSlashCommand) {
+            await interaction.reply('Working on it...');
+        }
+
+        const method = isSlashCommand ? sendStructuredResponseToUserViaSlashCommand : sendStructuredResponseToUser;
+
         const args = parseMessageForArgs(message, interaction.channel);
 
         if (args.isHelpCommand) {
@@ -540,7 +549,7 @@ module.exports = {
             });
             const output = `\n${tableString}\n\n ${exampleString}`;
 
-            return sendStructuredResponseToUser(interaction, output);
+            return method(interaction, output);
         }
 
         if (args.isInfoCommand) {
@@ -587,11 +596,11 @@ module.exports = {
         }
 
         try {
-            const allData = await getDungeonData(args, interaction);
+            const allData = await getDungeonData(args, interaction, method);
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore, args.isSimulateCommand);
 
-            return sendStructuredResponseToUser(interaction, dataToSend);
+            return method(interaction, dataToSend, false);
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {
@@ -599,7 +608,7 @@ module.exports = {
             }
             console.log(err);
 
-            return sendStructuredResponseToUser(interaction, errorMessageToSend);
+            return method(interaction, errorMessageToSend);
         }
     },
 };

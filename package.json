@@ -7,7 +7,7 @@
     "test": "jest",
     "lint": "eslint .",
     "dev": "nodemon index.js",
-    "heroku-postbuild": "echo This ran"
+    "heroku-postbuild": "node deploy-commands.js"
   },
   "author": "Cory Meikle",
   "license": "ISC",

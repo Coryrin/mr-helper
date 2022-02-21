@@ -478,7 +478,7 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated
         dungeonData.rows.push([
             `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
             affix,
-            `You can earn at least of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
+            `You can earn at least ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
         ]); 
     }
 

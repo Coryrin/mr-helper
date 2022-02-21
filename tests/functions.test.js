@@ -91,7 +91,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('SD')).toBe('Sanguine Depths');
+    expect(lookupDungeonFromShortname('GMBT')).toBe('Tazavesh: So\'leah\'s Gambit');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

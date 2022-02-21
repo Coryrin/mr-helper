@@ -190,6 +190,8 @@ const lookupDungeonFromShortname = (shortName) => {
         'MISTS': 'Mists of Tirna Scithe',
         'TOP': 'Theater of Pain',
         'PF': 'Plaguefall',
+        'GMBT': 'Tazavesh: So\'leah\'s Gambit',
+        'STRT': 'Tazavesh: Streets of Wonder',
     };
 
     return dungeons[shortName] || 'Dungeon not found';

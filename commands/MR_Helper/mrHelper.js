@@ -9,6 +9,7 @@ const {
     getKeystoneLevelToRun,
     getNumAffixesForLevel,
     arrayDiff,
+    lookupDungeonFromShortname,
 } = require('../../reusables/functions');
 
 async function getDungeonData(args, interaction) {
@@ -86,21 +87,6 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
     }
 
     return argsDataObj;
-}
-
-function lookupDungeonFromShortname(shortName) {
-    const dungeons = {
-        'SOA': 'Spires of Ascension',
-        'SD': 'Sanguine Depths',
-        'HOA': 'Halls of Atonement',
-        'NW': 'Necrotic Wake',
-        'DOS': 'De Other Side',
-        'MISTS': 'Mists of Tirna Scithe',
-        'TOP': 'Theater of Pain',
-        'PF': 'Plaguefall',
-    };
-
-    return Object.prototype.hasOwnProperty.call(dungeons, shortName) ? dungeons[shortName] : 'Dungeon name not found!';
 }
 
 function parseMessageForArgs(message, messageChannel) {

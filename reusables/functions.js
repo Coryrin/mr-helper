@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7.5;
-const SEASONAL_AFFIX = 'tormented';
+const SEASONAL_AFFIX = 'encrypted';
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
 const getNumAffixesForLevel = (keystoneLevel) => {
@@ -179,6 +179,22 @@ const prepareMessage = (message) => {
     return targetKeystoneLevel;
 };
 
+const lookupDungeonFromShortname = (shortName) => {
+    // Update this object when we know the slugs for Tazavesh
+    const dungeons = {
+        'SOA': 'Spires of Ascension',
+        'SD': 'Sanguine Depths',
+        'HOA': 'Halls of Atonement',
+        'NW': 'Necrotic Wake',
+        'DOS': 'De Other Side',
+        'MISTS': 'Mists of Tirna Scithe',
+        'TOP': 'Theater of Pain',
+        'PF': 'Plaguefall',
+    };
+
+    return dungeons[shortName] || 'Dungeon not found';
+};
+
 const arrayDiff = (firstArray, ...arrays) => {
     const allArrays = [].concat.apply([], arrays);
 
@@ -195,4 +211,5 @@ module.exports = {
     getKeystoneLevelToRun: getKeystoneLevelToRun,
     getNumAffixesForLevel: getNumAffixesForLevel,
     arrayDiff: arrayDiff,
+    lookupDungeonFromShortname: lookupDungeonFromShortname,
 };

@@ -13,15 +13,29 @@ const {
 } = require('../../reusables/functions');
 
 async function getDungeonData(args, interaction, interactionMethod) {
-    const res = await requestData(args);
+    const data = {};
 
-    if (args.getAltRuns) {
-        return await getDataForAlternateRuns(res.data);
-    } else if (args.getBestRuns) {
-        return await getDataForBestRuns(res.data);
-    } else if (args.isSimulateCommand) {
-        return await simulateLevel(res.data, args.simulateLevel, interaction, interactionMethod);
+    for (let i = 0; i < args.names.length; i++) {
+        const name = args.names[i];
+        const region = args.regions[i];
+        const realm = args.realms[i];
+
+        const res = await requestData(region, realm, name);
+
+        let response = {};
+
+        if (args.getAltRuns) {
+            response = await getDataForAlternateRuns(res.data);
+        } else if (args.getBestRuns) {
+            response = await getDataForBestRuns(res.data);
+        } else if (args.isSimulateCommand) {
+            response = await simulateLevel(res.data, args.simulateLevel, interaction, interactionMethod);
+        }
+
+        data[name] = response;
     }
+
+    return data;
 }
 
 function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
@@ -38,9 +52,9 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
                 return argsDataObj;
             }
 
-            argsDataObj.region = regionRealmName[0];
-            argsDataObj.realm = regionRealmName[1];
-            argsDataObj.name = regionRealmName[2];
+            argsDataObj.regions.push(regionRealmName[0]);
+            argsDataObj.realms.push(regionRealmName[1]);
+            argsDataObj.names.push(regionRealmName[2]);
 
             isSimplifiedCommand = true;
         }
@@ -55,7 +69,7 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
             return argsDataObj;
         }
 
-        argsDataObj.name = cmdParts[nameIndex + 1];
+        argsDataObj.names.push(cmdParts[nameIndex + 1]);
 
         const realmIndex = cmdParts.indexOf('--realm');
         if (realmIndex < 0) {
@@ -65,11 +79,11 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
             return argsDataObj;
         }
 
-        argsDataObj.realm = cmdParts[realmIndex + 1];
+        argsDataObj.realms.push(cmdParts[realmIndex + 1]);
 
         const regionIndex = cmdParts.indexOf('--region');
         if (regionIndex > -1) {
-            argsDataObj.region = cmdParts[regionIndex + 1];
+            argsDataObj.regions.push(cmdParts[regionIndex + 1]);
         }
     }
 
@@ -107,9 +121,9 @@ function lookupDungeonFromShortname(shortName) {
 function parseMessageForArgs(message, messageChannel) {
     let dataToReturn = {
         error: false,
-        name: '',
-        realm: '',
-        region: 'eu',
+        names: [],
+        realms: [],
+        regions: [],
         isHelpCommand: false,
         isInfoCommand: false,
         getAltRuns: true,
@@ -141,9 +155,11 @@ function parseMessageForArgs(message, messageChannel) {
     return dataToReturn;
 }
 
-function buildRequestUrl(args) {
-    const name = encodeURIComponent(args.name);
-    return `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
+function buildRequestUrl(region, realm, playerName) {
+    const name = encodeURIComponent(playerName);
+    const url = `https://raider.io/api/v1/characters/profile?region=${region}&realm=${realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
+    console.log(url);
+    return url;
 }
 
 function getBlankDataStructure() {
@@ -238,8 +254,8 @@ function getTyrannicalOrFortifiedForDungeon(dungeon) {
     }
 }
 
-async function requestData(args) {
-    const url = buildRequestUrl(args);
+async function requestData(region, realm, playerName) {
+    const url = buildRequestUrl(region, realm, playerName);
     return await axios({
         method: 'get',
         url: url,
@@ -475,7 +491,7 @@ async function getDataForAlternateRuns(data) {
     };
 }
 
-function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated=false) {
+function dataToAsciiTable(dungeons, currentScore, potentialMinScore, options={ isSimulated: false, isGroup: false }) {
     const dungeonData = {
         title: '',
         heading: ['Dungeon', 'Affix', 'More info'],
@@ -494,11 +510,13 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated
         ]); 
     }
 
-    const scoreOutput = isSimulated ? 'Simulated score' : 'Current score';
-    dungeonData.rows.push([]);
-    dungeonData.rows.push([`${scoreOutput}: ${Math.ceil(currentScore)}`]);
+    if (!options.isGroup) {
+        const scoreOutput = options.isSimulated ? 'Simulated score' : 'Current score';
+        dungeonData.rows.push([]);
+        dungeonData.rows.push([`${scoreOutput}: ${Math.ceil(currentScore)}`]);
+    }
 
-    if (!isSimulated) {
+    if (!options.isSimulated && !options.isGroup) {
         dungeonData.rows.push([`Potential minimum score increase: ${Math.ceil(potentialMinScore)}`]);
     }
 
@@ -597,10 +615,49 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
-        
-            const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore, args.isSimulateCommand);
+            const playerNames = Object.keys(allData);
+            const groupData = {};
 
-            return method(interaction, dataToSend, false);
+            for (const player of Object.keys(allData)) {
+                for (const dungeon of allData[player].dungeons) {
+                    if (!groupData[dungeon.dungeonLongName]) {
+                        groupData[dungeon.dungeonLongName] = {
+                            potentialScore: 0,
+                            keystoneLevel: 2,
+                            affix: '',
+                            dungeonLongName: dungeon.dungeonLongName,
+                        };
+                    }
+
+                    const dungeonData = groupData[dungeon.dungeonLongName];
+                    if (dungeonData.affix !== dungeon.affix && dungeonData.affix !== '') {
+                        continue;
+                    }
+
+                    if (dungeon.keystoneLevel > dungeonData.keystoneLevel) {
+                        dungeonData.keystoneLevel = dungeon.keystoneLevel;
+                    }
+
+                    dungeonData.affix = dungeon.affix;
+                    dungeonData.potentialScore += dungeon.potentialScore;
+                }
+
+                if (playerNames.length === 1) {
+                    const dataToSend = dataToAsciiTable(
+                        allData[player].dungeons,
+                        allData[player].totalScore,
+                        allData[player].potentialMinScore,
+                        { isSimulateCommand: allData[player].isSimulateCommand }
+                    );
+
+                    return method(interaction, dataToSend);
+                }
+            }
+
+            method(
+                interaction,
+                dataToAsciiTable(Object.values(groupData), 0, 0, { isGroup: true })
+            );
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {

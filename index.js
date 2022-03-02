@@ -35,8 +35,6 @@ client.on('message', async message => {
         return;
     }
 
-    console.log(args);
-
     command.execute(message, formattedMessage, false);
 });
 

@@ -168,6 +168,14 @@ function getBlankDataStructure() {
             'fortified': {},
             'tyrannical': {},
         },
+        'GMBT': {
+            'fortified': {},
+            'tyrannical': {},
+        },
+        'STRT': {
+            'fortified': {},
+            'tyrannical': {},
+        }
     };
 }
 
@@ -235,10 +243,10 @@ async function requestData(args) {
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const numDungeonsToRun = 8;
+    const numDungeonsToRun = 10;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;
-    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP'];
+    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP', 'GMBT', 'STRT'];
     const bestRunsDone = [];
     const altRunsDone = [];
 

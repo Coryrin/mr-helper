@@ -480,7 +480,7 @@ async function getDataForAlternateRuns(data) {
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated=false) {
     const dungeonData = {
         title: '',
-        heading: ['Dungeon', 'Affix', 'More info'],
+        heading: ['Dungeon', 'Affix', 'Minimum point increase'],
         rows: []
     };
 
@@ -492,7 +492,7 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated
         dungeonData.rows.push([
             `${dungeon.dungeonLongName} ${dungeon.keystoneLevel}+`,
             affix,
-            `You can earn at least of ${Math.ceil(dungeon.potentialScore)} points by running this dungeon.`
+            `${Math.ceil(dungeon.potentialScore)} points`
         ]); 
     }
 

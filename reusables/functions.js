@@ -96,6 +96,17 @@ const sendStructuredResponseToUserViaSlashCommand = async (interaction, response
     }
 };
 
+const getHelpJson = () => {
+    return {
+        title: '',
+        heading: ['Argument', 'Description', 'Required'],
+        rows: [
+            ['--best-runs', 'The player\'s best runs', '❌'],
+            ['--simulate', 'Simulate a player\'s rating for running every dungeon on an input keystone level', '❌'],
+        ]
+    };
+}
+
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
         .setColor('#0099ff')
@@ -202,14 +213,15 @@ const arrayDiff = (firstArray, ...arrays) => {
 };
 
 module.exports = {
-    buildTableFromJson: buildTableFromJson,
-    sendStructuredResponseToUser: sendStructuredResponseToUser,
-    sendEmbeddedMessage: sendEmbeddedMessage,
-    getDungeonScore: getDungeonScore,
-    sortDungeonsBy: sortDungeonsBy,
-    prepareMessage: prepareMessage,
-    getKeystoneLevelToRun: getKeystoneLevelToRun,
-    getNumAffixesForLevel: getNumAffixesForLevel,
-    arrayDiff: arrayDiff,
-    sendStructuredResponseToUserViaSlashCommand: sendStructuredResponseToUserViaSlashCommand,
+    buildTableFromJson,
+    sendStructuredResponseToUser,
+    sendEmbeddedMessage,
+    getDungeonScore,
+    sortDungeonsBy,
+    prepareMessage,
+    getKeystoneLevelToRun,
+    getNumAffixesForLevel,
+    arrayDiff,
+    sendStructuredResponseToUserViaSlashCommand,
+    getHelpJson
 };

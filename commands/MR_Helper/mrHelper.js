@@ -10,6 +10,7 @@ const {
     getNumAffixesForLevel,
     arrayDiff,
     sendStructuredResponseToUserViaSlashCommand,
+    getHelpJson
 } = require('../../reusables/functions');
 
 async function getDungeonData(args, interaction, interactionMethod) {
@@ -143,6 +144,7 @@ function parseMessageForArgs(message, messageChannel) {
 
 function buildRequestUrl(args) {
     const name = encodeURIComponent(args.name);
+
     return `https://raider.io/api/v1/characters/profile?region=${args.region}&realm=${args.realm}&name=${name}&fields=mythic_plus_best_runs%2Cmythic_plus_alternate_runs`;
 }
 
@@ -505,30 +507,20 @@ function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated
     return buildTableFromJson(dungeonData);
 }
 
-function getHelpJson() {
-    return {
-        title: '',
-        heading: ['Argument', 'Description', 'Required'],
-        rows: [
-            ['--best-runs', 'The player\'s best runs', '❌'],
-            ['--simulate', 'Simulate a player\'s rating for running every dungeon on an input keystone level', '❌'],
-            ['--info', 'Return general information about the bot', '❌'],
-        ]
-    };
-}
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('mr-helper')
         .setDescription('Get dungeons to run to improve overall mythic rating')
         .addStringOption(option =>
             option.setName('command')
-                .setDescription('The command to run. e.g. --help, --info, eu/argent-dawn/ellorett')
+                .setDescription('The command to run. e.g. eu/argent-dawn/ellorett --simulate 15, eu/argent-dawn/ellorett --best-runs')
                 .setRequired(true)
         ),
     async execute(interaction, message, isSlashCommand) {
         if (isSlashCommand) {
             await interaction.reply('Working on it...');
+        } else {
+            await interaction.reply('Warning - the \'!\' prefix has been deprecated to keep up to date with Discord\'s bot standards. Please use the slash commands.');
         }
 
         const method = isSlashCommand ? sendStructuredResponseToUserViaSlashCommand : sendStructuredResponseToUser;
@@ -541,12 +533,12 @@ module.exports = {
                 title: '',
                 heading: 'Examples',
                 rows: [
-                    ['!mr-helper eu/argent-dawn/ellorett'],
-                    ['!mr-helper eu/argent-dawn/ellorett --best-runs'],
-                    ['!mr-helper eu/argent-dawn/ellorett --simulate 15'],
-                    ['!mr-helper --info'],
+                    ['/mr-helper eu/argent-dawn/ellorett'],
+                    ['/mr-helper eu/argent-dawn/ellorett --best-runs'],
+                    ['/mr-helper eu/argent-dawn/ellorett --simulate 15'],
                 ]
             });
+
             const output = `\n${tableString}\n\n ${exampleString}`;
 
             return method(interaction, output);

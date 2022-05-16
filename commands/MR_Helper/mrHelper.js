@@ -586,7 +586,7 @@ module.exports = {
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore, args.isSimulateCommand);
 
-            return method(interaction, dataToSend, false);
+            return method(interaction, dataToSend, !args.isSimulateCommand);
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {

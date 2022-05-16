@@ -80,6 +80,33 @@ const sendStructuredResponseToUser = async (interaction, response) => {
     }
 };
 
+const sendStructuredResponseToUserViaSlashCommand = async (interaction, response, shouldEdit=true) => {
+    if (process.env.DEBUG) {
+        response += '\n DEBUG';
+    }
+
+    try {
+        if (shouldEdit) {
+            await interaction.editReply('```' + response + '```');
+        } else {
+            await interaction.followUp('```' + response + '```');
+        }
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+const getHelpJson = () => {
+    return {
+        title: '',
+        heading: ['Argument', 'Description', 'Required'],
+        rows: [
+            ['--best-runs', 'The player\'s best runs', '❌'],
+            ['--simulate', 'Simulate a player\'s rating for running every dungeon on an input keystone level', '❌'],
+        ]
+    };
+}
+
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
         .setColor('#0099ff')
@@ -113,7 +140,7 @@ const sortDungeonsBy = (dungeons, sortBy) => {
 };
 
 const prepareMessage = (message) => {
-    let formattedMessage = message.content;
+    let formattedMessage = message.content.substring(1);
 
     try {
         const channelPrefixes = message.channel.topic;
@@ -186,13 +213,15 @@ const arrayDiff = (firstArray, ...arrays) => {
 };
 
 module.exports = {
-    buildTableFromJson: buildTableFromJson,
-    sendStructuredResponseToUser: sendStructuredResponseToUser,
-    sendEmbeddedMessage: sendEmbeddedMessage,
-    getDungeonScore: getDungeonScore,
-    sortDungeonsBy: sortDungeonsBy,
-    prepareMessage: prepareMessage,
-    getKeystoneLevelToRun: getKeystoneLevelToRun,
-    getNumAffixesForLevel: getNumAffixesForLevel,
-    arrayDiff: arrayDiff,
+    buildTableFromJson,
+    sendStructuredResponseToUser,
+    sendEmbeddedMessage,
+    getDungeonScore,
+    sortDungeonsBy,
+    prepareMessage,
+    getKeystoneLevelToRun,
+    getNumAffixesForLevel,
+    arrayDiff,
+    sendStructuredResponseToUserViaSlashCommand,
+    getHelpJson
 };

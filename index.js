@@ -26,7 +26,7 @@ client.on('message', async message => {
 
     const formattedMessage = prepareMessage(message);
     const args = formattedMessage.trim().split(/ + /g);
-    const cmd = args[0].slice(prefix.length);
+    const cmd = args[0].slice();
     const cmdParts = cmd.split(' ');
     const cmdName = cmdParts[0];
     const command = client.commands.get(cmdName);
@@ -37,7 +37,7 @@ client.on('message', async message => {
 
     console.log(args);
 
-    command.execute(message, formattedMessage);
+    command.execute(message, formattedMessage, false);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -52,7 +52,15 @@ client.on('interactionCreate', async interaction => {
     }
 
     try {
-        await command.execute(interaction);
+        const options = [];
+
+        for (const option of interaction.options._hoistedOptions) {
+            options.push(option.value);
+        }
+
+        let message = options.join(' ');
+
+        await command.execute(interaction, message, true);
     } catch (err) {
         console.error(err);
         await interaction.reply({content: 'There was an error whilst executing the command.'});

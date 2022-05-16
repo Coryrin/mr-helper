@@ -1,12 +1,13 @@
 {
   "name": "mythic-bot",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "lint": "eslint .",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "heroku-postbuild": "node deploy-commands.js"
   },
   "author": "Cory Meikle",
   "license": "ISC",

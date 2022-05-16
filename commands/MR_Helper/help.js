@@ -22,7 +22,6 @@ module.exports = {
                 ['/mr-helper eu/argent-dawn/ellorett --simulate 15'],
             ]
         });
-            
         const output = `\n${tableString}\n\n ${exampleString}`;
 
         return sendStructuredResponseToUserViaSlashCommand(interaction, output);

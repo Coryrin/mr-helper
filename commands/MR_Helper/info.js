@@ -6,7 +6,7 @@ const {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('info')
-        .setDescription('Get generation information about Mythic Rating Helper'),
+        .setDescription('Get general information about Mythic Rating Helper'),
     async execute(interaction) {
         const messageObject = {
             title: 'Mythic Rating Helper',
@@ -43,6 +43,6 @@ module.exports = {
             ]
         };
 
-        return sendEmbeddedMessage(interaction.channel, messageObject);
+        return sendEmbeddedMessage(interaction, messageObject);
     }
 }

@@ -117,7 +117,7 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
         .setTimestamp();
 
     try {
-        messageChannel.send({
+        messageChannel.reply({
             embeds: [embedMessage]
         });
     } catch (err) {

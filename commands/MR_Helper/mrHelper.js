@@ -574,7 +574,7 @@ module.exports = {
                 ]
             };
 
-            return sendEmbeddedMessage(interaction.channel, messageObject);
+            return sendEmbeddedMessage(interaction, messageObject);
         }
 
         if (args.error) {
@@ -592,7 +592,6 @@ module.exports = {
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
-            console.log(err);
 
             return method(interaction, errorMessageToSend);
         }

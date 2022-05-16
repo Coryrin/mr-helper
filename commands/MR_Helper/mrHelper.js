@@ -9,6 +9,7 @@ const {
     getKeystoneLevelToRun,
     getNumAffixesForLevel,
     arrayDiff,
+    lookupDungeonFromShortname,
 } = require('../../reusables/functions');
 
 async function getDungeonData(args, interaction) {
@@ -86,21 +87,6 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
     }
 
     return argsDataObj;
-}
-
-function lookupDungeonFromShortname(shortName) {
-    const dungeons = {
-        'SOA': 'Spires of Ascension',
-        'SD': 'Sanguine Depths',
-        'HOA': 'Halls of Atonement',
-        'NW': 'Necrotic Wake',
-        'DOS': 'De Other Side',
-        'MISTS': 'Mists of Tirna Scithe',
-        'TOP': 'Theater of Pain',
-        'PF': 'Plaguefall',
-    };
-
-    return Object.prototype.hasOwnProperty.call(dungeons, shortName) ? dungeons[shortName] : 'Dungeon name not found!';
 }
 
 function parseMessageForArgs(message, messageChannel) {
@@ -182,6 +168,14 @@ function getBlankDataStructure() {
             'fortified': {},
             'tyrannical': {},
         },
+        'GMBT': {
+            'fortified': {},
+            'tyrannical': {},
+        },
+        'STRT': {
+            'fortified': {},
+            'tyrannical': {},
+        }
     };
 }
 
@@ -249,10 +243,10 @@ async function requestData(args) {
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const numDungeonsToRun = 8;
+    const numDungeonsToRun = 10;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;
-    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP'];
+    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP', 'GMBT', 'STRT'];
     const bestRunsDone = [];
     const altRunsDone = [];
 

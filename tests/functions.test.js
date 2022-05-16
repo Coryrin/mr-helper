@@ -1,6 +1,7 @@
 const {
     getDungeonScore,
     getKeystoneLevelToRun,
+    lookupDungeonFromShortname,
 } = require('../reusables/functions');
 
 const AFFIXES = [
@@ -14,7 +15,7 @@ const AFFIXES = [
         name: 'bolstering',
     },
     {
-        name: 'tormented'
+        name: 'encrypted'
     },
 ];
 
@@ -87,4 +88,10 @@ test('getKeystoneLevelToRun', () => {
     for (const dungeon of dungeons) {
         expect(getKeystoneLevelToRun(bestRun, dungeon)).toBe(dungeon.expected);
     }
+});
+
+test('getDungeonFromShortname', () => {
+    expect(lookupDungeonFromShortname('GMBT')).toBe('Tazavesh: So\'leah\'s Gambit');
+
+    expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

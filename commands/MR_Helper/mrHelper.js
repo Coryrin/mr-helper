@@ -136,35 +136,27 @@ function buildRequestUrl(args) {
 
 function getBlankDataStructure() {
     return {
-        'SD': {
+        'GD': {
             'fortified': {},
             'tyrannical': {},
         },
-        'SOA': {
+        'ID': {
             'fortified': {},
             'tyrannical': {},
         },
-        'MISTS': {
+        'YARD': {
             'fortified': {},
             'tyrannical': {},
         },
-        'PF': {
+        'WORK': {
             'fortified': {},
             'tyrannical': {},
         },
-        'TOP': {
+        'LOWR': {
             'fortified': {},
             'tyrannical': {},
         },
-        'NW': {
-            'fortified': {},
-            'tyrannical': {},
-        },
-        'DOS': {
-            'fortified': {},
-            'tyrannical': {},
-        },
-        'HOA': {
+        'UPPR': {
             'fortified': {},
             'tyrannical': {},
         },
@@ -243,10 +235,10 @@ async function requestData(args) {
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const numDungeonsToRun = 10;
+    const allDungeonsShortNames = ['GD', 'ID', 'YARD', 'WORK', 'LOWR', 'UPPR', 'GMBT', 'STRT'];
+    const numDungeonsToRun = allDungeonsShortNames.length;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;
-    const allDungeonsShortNames = ['SOA', 'MISTS', 'DOS', 'SD', 'HOA', 'NW', 'PF', 'TOP', 'GMBT', 'STRT'];
     const bestRunsDone = [];
     const altRunsDone = [];
 

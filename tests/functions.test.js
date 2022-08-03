@@ -15,7 +15,7 @@ const AFFIXES = [
         name: 'bolstering',
     },
     {
-        name: 'encrypted'
+        name: 'shrouded'
     },
 ];
 

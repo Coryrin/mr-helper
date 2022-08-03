@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7.5;
-const SEASONAL_AFFIX = 'encrypted';
+const SEASONAL_AFFIX = 'shrouded';
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
 const getNumAffixesForLevel = (keystoneLevel) => {
@@ -209,14 +209,12 @@ const prepareMessage = (message) => {
 const lookupDungeonFromShortname = (shortName) => {
     // Update this object when we know the slugs for Tazavesh
     const dungeons = {
-        'SOA': 'Spires of Ascension',
-        'SD': 'Sanguine Depths',
-        'HOA': 'Halls of Atonement',
-        'NW': 'Necrotic Wake',
-        'DOS': 'De Other Side',
-        'MISTS': 'Mists of Tirna Scithe',
-        'TOP': 'Theater of Pain',
-        'PF': 'Plaguefall',
+        'ID': 'Iron Docks',
+        'GD': 'Grimrail Depot',
+        'YARD': 'Mechagon Junkyard',
+        'WORK': 'Mechagon Workshop',
+        'LOWR': 'Return to Karazhan: Lower',
+        'UPPR': 'Return to Karazhan: Upper',
         'GMBT': 'Tazavesh: So\'leah\'s Gambit',
         'STRT': 'Tazavesh: Streets of Wonder',
     };

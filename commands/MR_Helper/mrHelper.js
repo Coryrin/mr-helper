@@ -331,7 +331,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
             dungeon.potentialScore = 0;
             dungeon.score = currentScore;
         } else {
-            dungeon.potentialScore = score - currentScore;
+            dungeon.potentialScore = (score - currentScore) + ((levelToSimulate - 10) * 2);
             dungeon.score = score;
             dungeon.mythic_level = levelToSimulate;
         }
@@ -404,8 +404,8 @@ async function getDataForBestRuns(data) {
         dungeon.dungeonLongName = dungeon.dungeon;
 
         dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
-        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes);
-        dungeon.potentialScore = targetKeystoneDungeonScore - currentDungeonScore;
+        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes, true);
+        dungeon.potentialScore = (targetKeystoneDungeonScore - currentDungeonScore);
 
         potentialMinimumScore += dungeon.potentialScore;
     }

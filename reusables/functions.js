@@ -128,7 +128,7 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
 const getDungeonScore = (keystoneLevel, keystoneAffixes, addAdditionalScore=true) => {
     const additionalScore = addAdditionalScore ? ((keystoneLevel - 10) * 2) : 0;
 
-    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes) + additionalScore;
+    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes) + (additionalScore > 0 ? additionalScore : 0);
 };
 
 const sortDungeonsBy = (dungeons, sortBy) => {

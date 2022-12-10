@@ -15,7 +15,7 @@ const AFFIXES = [
         name: 'bolstering',
     },
     {
-        name: 'shrouded'
+        name: 'thundering'
     },
 ];
 
@@ -91,7 +91,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('GMBT')).toBe('Tazavesh: So\'leah\'s Gambit');
+    expect(lookupDungeonFromShortname('TJS')).toBe('Temple of the Jade Serpent');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

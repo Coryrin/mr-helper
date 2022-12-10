@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7.5;
-const SEASONAL_AFFIX = 'shrouded';
+const SEASONAL_AFFIX = 'thundering';
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
 const getNumAffixesForLevel = (keystoneLevel) => {
@@ -105,7 +105,7 @@ const getHelpJson = () => {
             ['--simulate', 'Simulate a player\'s rating for running every dungeon on an input keystone level', '❌'],
         ]
     };
-}
+};
 
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
@@ -125,8 +125,10 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
     }
 };
 
-const getDungeonScore = (keystoneLevel, keystoneAffixes) => {
-    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes);
+const getDungeonScore = (keystoneLevel, keystoneAffixes, addAdditionalScore=true) => {
+    const additionalScore = addAdditionalScore ? ((keystoneLevel - 10) * 2) : 0;
+
+    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes) + additionalScore;
 };
 
 const sortDungeonsBy = (dungeons, sortBy) => {
@@ -207,16 +209,15 @@ const prepareMessage = (message) => {
 };
 
 const lookupDungeonFromShortname = (shortName) => {
-    // Update this object when we know the slugs for Tazavesh
     const dungeons = {
-        'ID': 'Iron Docks',
-        'GD': 'Grimrail Depot',
-        'YARD': 'Mechagon Junkyard',
-        'WORK': 'Mechagon Workshop',
-        'LOWR': 'Return to Karazhan: Lower',
-        'UPPR': 'Return to Karazhan: Upper',
-        'GMBT': 'Tazavesh: So\'leah\'s Gambit',
-        'STRT': 'Tazavesh: Streets of Wonder',
+        'AA': 'Algeth\'ar Academy',
+        'COS': 'Court of Stars',
+        'HOV': 'Halls of Valor',
+        'RLP': 'Ruby Life Pools',
+        'SBG': 'Shadowmoon Burial Grounds',
+        'TJS': 'Temple of the Jade Serpent',
+        'AV': 'The Azure Vault',
+        'NO': 'The Nokhud Offensive',
     };
 
     return dungeons[shortName] || 'Dungeon not found';

@@ -136,35 +136,35 @@ function buildRequestUrl(args) {
 
 function getBlankDataStructure() {
     return {
-        'GD': {
+        'AA': {
             'fortified': {},
             'tyrannical': {},
         },
-        'ID': {
+        'COS': {
             'fortified': {},
             'tyrannical': {},
         },
-        'YARD': {
+        'NO': {
             'fortified': {},
             'tyrannical': {},
         },
-        'WORK': {
+        'HOV': {
             'fortified': {},
             'tyrannical': {},
         },
-        'LOWR': {
+        'RLP': {
             'fortified': {},
             'tyrannical': {},
         },
-        'UPPR': {
+        'SBG': {
             'fortified': {},
             'tyrannical': {},
         },
-        'GMBT': {
+        'TJS': {
             'fortified': {},
             'tyrannical': {},
         },
-        'STRT': {
+        'AV': {
             'fortified': {},
             'tyrannical': {},
         }
@@ -182,7 +182,8 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     }
 
     if (!dungeon.fortified.score && !dungeon.tyrannical.score) {
-        const score = getDungeonScore(2, [{name: 'tyrannical'}]);
+        const score = getDungeonScore(2, [{name: 'tyrannical'}], true);
+
         return {
             potentialScore: score + (score / 2),
             dungeonLongName: dungeonName,
@@ -235,7 +236,7 @@ async function requestData(args) {
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const allDungeonsShortNames = ['GD', 'ID', 'YARD', 'WORK', 'LOWR', 'UPPR', 'GMBT', 'STRT'];
+    const allDungeonsShortNames = ['AA', 'COS', 'HOV', 'RLP', 'SBG', 'TJS', 'AV', 'NO'];
     const numDungeonsToRun = allDungeonsShortNames.length;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;
@@ -330,7 +331,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
             dungeon.potentialScore = 0;
             dungeon.score = currentScore;
         } else {
-            dungeon.potentialScore = score - currentScore;
+            dungeon.potentialScore = (score - currentScore) + ((levelToSimulate - 10) * 2);
             dungeon.score = score;
             dungeon.mythic_level = levelToSimulate;
         }
@@ -352,15 +353,17 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
 
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(levelToSimulate, affixes) / 3;
+        //  + ((levelToSimulate - 10) * 2)
 
-        const currentScore = (dungeon.score * 1.5) / 3;
+        // Get base scores
+        const score = (getDungeonScore(levelToSimulate, affixes, false) / 3);
+        const currentScore = ((dungeon.score * 1.5) / 3);
 
         if (currentScore > score) {
             dungeon.score = currentScore;
             dungeon.potentialScore = 0;
         } else {
-            dungeon.potentialScore = score - currentScore;
+            dungeon.potentialScore = (score - currentScore) + ((levelToSimulate - 10) * 2);
             dungeon.score = score;
             dungeon.mythic_level = levelToSimulate;
         }
@@ -401,8 +404,8 @@ async function getDataForBestRuns(data) {
         dungeon.dungeonLongName = dungeon.dungeon;
 
         dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
-        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes);
-        dungeon.potentialScore = targetKeystoneDungeonScore - currentDungeonScore;
+        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes, true);
+        dungeon.potentialScore = (targetKeystoneDungeonScore - currentDungeonScore);
 
         potentialMinimumScore += dungeon.potentialScore;
     }

@@ -15,7 +15,7 @@ const AFFIXES = [
         name: 'bolstering',
     },
     {
-        name: 'shrouded'
+        name: 'thundering'
     },
 ];
 
@@ -36,9 +36,9 @@ test('getDungeonScore', () => {
 
     expect(getDungeonScore(10, affixesToTest)).toBe(150);
 
-    expect(getDungeonScore(15, affixesToTest)).toBe(187.5);
+    expect(getDungeonScore(15, affixesToTest)).toBe(197.5);
 
-    expect(getDungeonScore(20, affixesToTest)).toBe(225);
+    expect(getDungeonScore(20, affixesToTest)).toBe(245);
 });
 
 test('getKeystoneLevelToRun', () => {
@@ -91,7 +91,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('GMBT')).toBe('Tazavesh: So\'leah\'s Gambit');
+    expect(lookupDungeonFromShortname('TJS')).toBe('Temple of the Jade Serpent');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

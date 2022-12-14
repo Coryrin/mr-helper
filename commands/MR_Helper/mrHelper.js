@@ -185,7 +185,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
         const score = getDungeonScore(2, [{name: 'tyrannical'}], true);
 
         return {
-            potentialScore: score + (score / 2),
+            potentialScore: score,
             dungeonLongName: dungeonName,
             affix: 'fortified',
             totalScore: 0,

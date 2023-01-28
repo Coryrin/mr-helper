@@ -289,6 +289,7 @@ function checkRunsForIncompleteData(data, levelToSimulate) {
             ],
         };
 
+
         for (let j = 0; j < altRunsToAdd.length; j++) {
             dungeonToAdd.dungeon = lookupDungeonFromShortname(altRunsToAdd[j]);
 
@@ -323,7 +324,12 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
 
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(levelToSimulate, affixes);
+        const score = getDungeonScore(levelToSimulate, affixes, true);
+
+        // if (dungeon.dungeon === 'Shadowmoon Burial Grounds') {
+        //     console.log(dungeon.score);
+        //     console.log('simulated', score);
+        // }
 
         const currentScore = dungeon.score * 1.5;
 
@@ -354,10 +360,18 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
         //  + ((levelToSimulate - 10) * 2)
+        const simulatedScore = getDungeonScore(levelToSimulate, affixes, true);
 
         // Get base scores
-        const score = (getDungeonScore(levelToSimulate, affixes, false) / 3);
-        const currentScore = ((dungeon.score * 1.5) / 3);
+        const score = simulatedScore - (simulatedScore / 3);
+        // const currentScore = ((dungeon.score * 1.5) / 3);
+        const currentScore = dungeon.score;
+
+        if (dungeon.dungeon === 'The Azure Vault') {
+            console.log('dungeon', dungeon);
+            console.log('current', currentScore);
+            console.log('score', score);
+        }
 
         if (currentScore > score) {
             dungeon.score = currentScore;
@@ -455,7 +469,7 @@ async function getDataForAlternateRuns(data) {
     }
 
     console.log('---------------------------------------------------------------------------------------------');
-    console.log(`Current score for ${data.name}: ${totalScore}`);
+    console.log(`Current score for ${data.name}: ${Math.round(totalScore)}`);
     console.log(`The minimum points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
     console.log('---------------------------------------------------------------------------------------------');
 

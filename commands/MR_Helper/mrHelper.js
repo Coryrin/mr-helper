@@ -324,13 +324,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
 
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(levelToSimulate, affixes, true);
-
-        // if (dungeon.dungeon === 'Shadowmoon Burial Grounds') {
-        //     console.log(dungeon.score);
-        //     console.log('simulated', score);
-        // }
-
+        const score = getDungeonScore(levelToSimulate, affixes);
         const currentScore = dungeon.score * 1.5;
 
         if (currentScore > score) {
@@ -360,18 +354,13 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
         //  + ((levelToSimulate - 10) * 2)
-        const simulatedScore = getDungeonScore(levelToSimulate, affixes, true);
+        // const simulatedScore = getDungeonScore(levelToSimulate, affixes, true);
 
         // Get base scores
-        const score = simulatedScore - (simulatedScore / 3);
+        const score = (getDungeonScore(levelToSimulate, affixes, false) / 3);
+        const currentScore = ((dungeon.score * 1.5) / 3);
+        // const score = simulatedScore - (simulatedScore / 3);
         // const currentScore = ((dungeon.score * 1.5) / 3);
-        const currentScore = dungeon.score;
-
-        if (dungeon.dungeon === 'The Azure Vault') {
-            console.log('dungeon', dungeon);
-            console.log('current', currentScore);
-            console.log('score', score);
-        }
 
         if (currentScore > score) {
             dungeon.score = currentScore;

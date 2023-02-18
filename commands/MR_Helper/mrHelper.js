@@ -331,7 +331,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
             dungeon.potentialScore = 0;
             dungeon.score = currentScore;
         } else {
-            dungeon.potentialScore = (score - currentScore) + ((levelToSimulate - 10) * 2);
+            dungeon.potentialScore = score - currentScore;
             dungeon.score = score;
             dungeon.mythic_level = levelToSimulate;
         }
@@ -353,20 +353,15 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
 
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        //  + ((levelToSimulate - 10) * 2)
-        // const simulatedScore = getDungeonScore(levelToSimulate, affixes, true);
-
         // Get base scores
-        const score = (getDungeonScore(levelToSimulate, affixes, false) / 3);
+        const score = (getDungeonScore(levelToSimulate, affixes) / 3);
         const currentScore = ((dungeon.score * 1.5) / 3);
-        // const score = simulatedScore - (simulatedScore / 3);
-        // const currentScore = ((dungeon.score * 1.5) / 3);
 
         if (currentScore > score) {
             dungeon.score = currentScore;
             dungeon.potentialScore = 0;
         } else {
-            dungeon.potentialScore = (score - currentScore) + ((levelToSimulate - 10) * 2);
+            dungeon.potentialScore = score - currentScore;
             dungeon.score = score;
             dungeon.mythic_level = levelToSimulate;
         }

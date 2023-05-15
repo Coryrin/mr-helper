@@ -6,6 +6,29 @@ const BASE_SCORE_PER_LEVEL = 7.5;
 const SEASONAL_AFFIX = 'thundering';
 const BASE_SCORE_FOR_COMPLETION = 37.5;
 
+// Temp unused - might be better to move to this down the line?
+const scoresPerLevel = new Map([
+    [2, 40],
+    [3, 45],
+    [4, 55],
+    [5, 60],
+    [6, 65],
+    [7, 75],
+    [8, 80],
+    [9, 85],
+    [10, 100],
+    [11, 107],
+    [12, 114],
+    [13, 121],
+    [14, 128],
+    [15, 135],
+    [16, 142],
+    [17, 149],
+    [18, 156],
+    [19, 163],
+    [20, 170],
+]);
+
 const getNumAffixesForLevel = (keystoneLevel) => {
     const keystoneLevelInt = parseInt(keystoneLevel);
 
@@ -18,23 +41,15 @@ const getNumAffixesForLevel = (keystoneLevel) => {
         },
         {
             name: 'raging',
-        },
-        {
-            name: SEASONAL_AFFIX,
         }
     ];
 
-    if (keystoneLevelInt >= 10) {
+    if (keystoneLevelInt >= 14) {
         return affixes;
     }
 
     if (keystoneLevelInt >= 7) {
-        affixes.splice(3, 1);
-        return affixes;
-    }
-
-    if (keystoneLevelInt >= 4) {
-        affixes.splice(2, 2);
+        affixes.splice(2, 1);
         return affixes;
     }
 
@@ -52,11 +67,12 @@ const getBaseScoreForAffixes = (affixes) => {
     let baseScore = 0;
 
     for (const affix of affixes) {
-        if (affix.name.toLowerCase() === SEASONAL_AFFIX) {
-            baseScore += BASE_SCORE_PER_LEVEL * 2;
-        } else {
+        if (affix.name === 'tyrannical' || affix.name === 'fortified') {
             baseScore += BASE_SCORE_PER_LEVEL;
+            continue;
         }
+        
+        baseScore += BASE_SCORE_PER_LEVEL * 2;
     }
 
     return baseScore;
@@ -210,14 +226,14 @@ const prepareMessage = (message) => {
 
 const lookupDungeonFromShortname = (shortName) => {
     const dungeons = {
-        'AA': 'Algeth\'ar Academy',
-        'COS': 'Court of Stars',
-        'HOV': 'Halls of Valor',
-        'RLP': 'Ruby Life Pools',
-        'SBG': 'Shadowmoon Burial Grounds',
-        'TJS': 'Temple of the Jade Serpent',
-        'AV': 'The Azure Vault',
-        'NO': 'The Nokhud Offensive',
+        'BH': 'Brackenhide Hollow',
+        'FH': 'Freehold',
+        'HOI': 'Halls of Infusion',
+        'NL': 'Neltharion\'s Lair',
+        'NELT': 'Neltharus',
+        'UNDR': 'The Underrot',
+        'VP': 'The Vortex Pinnacle',
+        'ULD': 'Uldaman: Legacy of Tyr',
     };
 
     return dungeons[shortName] || 'Dungeon not found';

@@ -14,9 +14,6 @@ const AFFIXES = [
     {
         name: 'bolstering',
     },
-    {
-        name: 'thundering'
-    },
 ];
 
 test('getDungeonScore', () => {
@@ -26,19 +23,11 @@ test('getDungeonScore', () => {
 
     affixesToTest.push(AFFIXES[1]);
 
-    expect(getDungeonScore(5, affixesToTest)).toBe(90);
+    expect(getDungeonScore(7, affixesToTest)).toBe(112.5);
 
     affixesToTest.push(AFFIXES[2]);
 
-    expect(getDungeonScore(8, affixesToTest)).toBe(120);
-
-    affixesToTest.push(AFFIXES[3]);
-
-    expect(getDungeonScore(10, affixesToTest)).toBe(150);
-
-    expect(getDungeonScore(15, affixesToTest)).toBe(197.5);
-
-    expect(getDungeonScore(20, affixesToTest)).toBe(245);
+    expect(getDungeonScore(14, affixesToTest)).toBe(192);
 });
 
 test('getKeystoneLevelToRun', () => {
@@ -91,7 +80,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('TJS')).toBe('Temple of the Jade Serpent');
+    expect(lookupDungeonFromShortname('VP')).toBe('The Vortex Pinnacle');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

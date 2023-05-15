@@ -136,35 +136,35 @@ function buildRequestUrl(args) {
 
 function getBlankDataStructure() {
     return {
-        'AA': {
+        'BH': {
             'fortified': {},
             'tyrannical': {},
         },
-        'COS': {
+        'FH': {
             'fortified': {},
             'tyrannical': {},
         },
-        'NO': {
+        'HOI': {
             'fortified': {},
             'tyrannical': {},
         },
-        'HOV': {
+        'NL': {
             'fortified': {},
             'tyrannical': {},
         },
-        'RLP': {
+        'NELT': {
             'fortified': {},
             'tyrannical': {},
         },
-        'SBG': {
+        'UNDR': {
             'fortified': {},
             'tyrannical': {},
         },
-        'TJS': {
+        'VP': {
             'fortified': {},
             'tyrannical': {},
         },
-        'AV': {
+        'ULD': {
             'fortified': {},
             'tyrannical': {},
         }
@@ -229,14 +229,19 @@ function getTyrannicalOrFortifiedForDungeon(dungeon) {
 
 async function requestData(args) {
     const url = buildRequestUrl(args);
-    return await axios({
-        method: 'get',
-        url: url,
-    });
+    try {
+        return await axios({
+            method: 'get',
+            url: url,
+        });
+    } catch (error) {
+        console.log('error', error);
+    }
+    
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const allDungeonsShortNames = ['AA', 'COS', 'HOV', 'RLP', 'SBG', 'TJS', 'AV', 'NO'];
+    const allDungeonsShortNames = ['BH', 'FH', 'HOI', 'NL', 'NELT', 'UNDR', 'VP', 'ULD'];
     const numDungeonsToRun = allDungeonsShortNames.length;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;

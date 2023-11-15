@@ -136,35 +136,35 @@ function buildRequestUrl(args) {
 
 function getBlankDataStructure() {
     return {
-        'BH': {
+        'AD': {
             'fortified': {},
             'tyrannical': {},
         },
-        'FH': {
+        'BRH': {
             'fortified': {},
             'tyrannical': {},
         },
-        'HOI': {
+        'FALL': {
             'fortified': {},
             'tyrannical': {},
         },
-        'NL': {
+        'RISE': {
             'fortified': {},
             'tyrannical': {},
         },
-        'NELT': {
+        'DHT': {
             'fortified': {},
             'tyrannical': {},
         },
-        'UNDR': {
+        'EB': {
             'fortified': {},
             'tyrannical': {},
         },
-        'VP': {
+        'TOTT': {
             'fortified': {},
             'tyrannical': {},
         },
-        'ULD': {
+        'WM': {
             'fortified': {},
             'tyrannical': {},
         }
@@ -241,7 +241,7 @@ async function requestData(args) {
 }
 
 function checkRunsForIncompleteData(data, levelToSimulate) {
-    const allDungeonsShortNames = ['BH', 'FH', 'HOI', 'NL', 'NELT', 'UNDR', 'VP', 'ULD'];
+    const allDungeonsShortNames = ['AD', 'BRH', 'FALL', 'RISE', 'DHT', 'EB', 'TOTT', 'WM'];
     const numDungeonsToRun = allDungeonsShortNames.length;
     const numBestRuns = numDungeonsToRun - data.mythic_plus_best_runs.length;
     const numAltRuns = numDungeonsToRun - data.mythic_plus_alternate_runs.length;

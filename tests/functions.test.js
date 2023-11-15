@@ -80,7 +80,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('VP')).toBe('The Vortex Pinnacle');
+    expect(lookupDungeonFromShortname('BRH')).toBe('Black Rook Hold');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

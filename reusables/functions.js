@@ -143,12 +143,6 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
 const getDungeonScore = (keystoneLevel, keystoneAffixes, addAdditionalScore=true) => {
     const additionalScore = addAdditionalScore ? ((keystoneLevel - 10) * 2) + (keystoneLevel - 10) : 0;
 
-    const baseScoreForLevel = getBaseScoreForKeystoneLevel(keystoneLevel);
-    const baseScoreForAffixes = getBaseScoreForAffixes(keystoneAffixes);
-
-    console.log('level', baseScoreForLevel);
-    console.log('affix', baseScoreForAffixes);
-
     return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes) + (additionalScore > 0 ? additionalScore : 0);
 };
 
@@ -231,16 +225,6 @@ const prepareMessage = (message) => {
 
 const lookupDungeonFromShortname = (shortName) => {
     const dungeons = {
-<<<<<<< HEAD
-        'BH': 'Brackenhide Hollow',
-        'AA': 'Algeth\'ar Academy',
-        'HOI': 'Halls of Infusion',
-        'RLP': 'Ruby Life Pools',
-        'NELT': 'Neltharus',
-        'NO': 'The Nokhud Offensive',
-        'AV': 'The Azure Vault',
-        'ULD': 'Uldaman: Legacy of Tyr',
-=======
         'AD': 'Atal\'Dazar',
         'BRH': 'Black Rook Hold',
         'FALL': 'DOTI: Galakrond\'s Fall',
@@ -249,7 +233,6 @@ const lookupDungeonFromShortname = (shortName) => {
         'EB': 'Everbloom',
         'TOTT': 'Throne of the Tides',
         'WM': 'Waycrest Manor',
->>>>>>> origin/master
     };
 
     return dungeons[shortName] || 'Dungeon not found';

@@ -231,6 +231,7 @@ const prepareMessage = (message) => {
 
 const lookupDungeonFromShortname = (shortName) => {
     const dungeons = {
+<<<<<<< HEAD
         'BH': 'Brackenhide Hollow',
         'AA': 'Algeth\'ar Academy',
         'HOI': 'Halls of Infusion',
@@ -239,6 +240,16 @@ const lookupDungeonFromShortname = (shortName) => {
         'NO': 'The Nokhud Offensive',
         'AV': 'The Azure Vault',
         'ULD': 'Uldaman: Legacy of Tyr',
+=======
+        'AD': 'Atal\'Dazar',
+        'BRH': 'Black Rook Hold',
+        'FALL': 'DOTI: Galakrond\'s Fall',
+        'RISE': 'DOTI: Murozond\'s Rise',
+        'DHT': 'Darkheart Thicket',
+        'EB': 'Everbloom',
+        'TOTT': 'Throne of the Tides',
+        'WM': 'Waycrest Manor',
+>>>>>>> origin/master
     };
 
     return dungeons[shortName] || 'Dungeon not found';

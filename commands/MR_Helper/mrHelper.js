@@ -136,15 +136,11 @@ function buildRequestUrl(args) {
 
 function getBlankDataStructure() {
     return {
-        'BH': {
-            'fortified': {},
-            'tyrannical': {},
-        },
         'AA': {
             'fortified': {},
             'tyrannical': {},
         },
-        'HOI': {
+        'BH': {
             'fortified': {},
             'tyrannical': {},
         },
@@ -152,7 +148,7 @@ function getBlankDataStructure() {
             'fortified': {},
             'tyrannical': {},
         },
-        'NELT': {
+        'HOI': {
             'fortified': {},
             'tyrannical': {},
         },
@@ -161,6 +157,10 @@ function getBlankDataStructure() {
             'tyrannical': {},
         },
         'NO': {
+            'fortified': {},
+            'tyrannical': {},
+        },
+        'NELT': {
             'fortified': {},
             'tyrannical': {},
         },

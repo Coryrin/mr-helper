@@ -3,8 +3,7 @@ const { MessageEmbed } = require('discord.js');
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7.5;
-const SEASONAL_AFFIX = 'thundering';
-const BASE_SCORE_FOR_COMPLETION = 37.5;
+const BASE_SCORE_FOR_COMPLETION = 37.5 + 82.5;
 
 // Temp unused - might be better to move to this down the line?
 const scoresPerLevel = new Map([
@@ -44,11 +43,11 @@ const getNumAffixesForLevel = (keystoneLevel) => {
         }
     ];
 
-    if (keystoneLevelInt >= 14) {
+    if (keystoneLevelInt >= 10) {
         return affixes;
     }
 
-    if (keystoneLevelInt >= 7) {
+    if (keystoneLevelInt >= 5) {
         affixes.splice(2, 1);
         return affixes;
     }
@@ -67,10 +66,10 @@ const getBaseScoreForAffixes = (affixes) => {
     let baseScore = 0;
 
     for (const affix of affixes) {
-        if (affix.name === 'tyrannical' || affix.name === 'fortified') {
-            baseScore += BASE_SCORE_PER_LEVEL;
-            continue;
-        }
+        // if (affix.name === 'tyrannical' || affix.name === 'fortified') {
+        //     baseScore += BASE_SCORE_PER_LEVEL;
+        //     continue;
+        // }
         
         baseScore += BASE_SCORE_PER_LEVEL * 2;
     }

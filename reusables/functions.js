@@ -225,14 +225,14 @@ const prepareMessage = (message) => {
 
 const lookupDungeonFromShortname = (shortName) => {
     const dungeons = {
-        'AD': 'Atal\'Dazar',
-        'BRH': 'Black Rook Hold',
-        'FALL': 'DOTI: Galakrond\'s Fall',
-        'RISE': 'DOTI: Murozond\'s Rise',
-        'DHT': 'Darkheart Thicket',
-        'EB': 'Everbloom',
-        'TOTT': 'Throne of the Tides',
-        'WM': 'Waycrest Manor',
+        'AA': 'Algethar Academy',
+        'ULD': 'Uldaman: Legacy of Tyr',
+        'HOI': 'Halls of Infusion',
+        'BRH': 'Brackenhide Hollow',
+        'NELT': 'Neltharus',
+        'RLP': 'Ruby Life Pools',
+        'AV': 'The Azure Vault',
+        'NO': 'The Nokhud Offensive',
     };
 
     return dungeons[shortName] || 'Dungeon not found';

@@ -2,8 +2,9 @@ const ascii = require('ascii-table');
 const { MessageEmbed } = require('discord.js');
 require('dotenv').config();
 
-const BASE_SCORE_PER_LEVEL = 7.5;
-const BASE_SCORE_FOR_COMPLETION = 37.5 + 82.5;
+const BASE_SCORE_PER_LEVEL = 7;
+const BASE_SCORE_PER_AFFIX = 10;
+const BASE_SCORE_FOR_COMPLETION = 70;
 
 // Temp unused - might be better to move to this down the line?
 const scoresPerLevel = new Map([
@@ -141,10 +142,22 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
 };
 
 const getDungeonScore = (keystoneLevel, keystoneAffixes, addAdditionalScore=true) => {
-    const additionalScore = addAdditionalScore ? ((keystoneLevel - 10) * 2) + (keystoneLevel - 10) : 0;
+    const numberOfAffixes = getNumberOfAffixesForKeyLevel(keystoneLevel);
 
-    return BASE_SCORE_FOR_COMPLETION + getBaseScoreForKeystoneLevel(keystoneLevel) + getBaseScoreForAffixes(keystoneAffixes) + (additionalScore > 0 ? additionalScore : 0);
+    return BASE_SCORE_FOR_COMPLETION + (BASE_SCORE_PER_LEVEL * keystoneLevel) + (BASE_SCORE_PER_AFFIX * numberOfAffixes);
 };
+
+const getNumberOfAffixesForKeyLevel = (keyLevel) => {
+    if (keyLevel >= 2 && keyLevel <= 4) {
+        return 1;
+    }
+
+    if (keyLevel >= 5 && keyLevel <= 9) {
+        return 2;
+    }
+
+    return 3;
+}
 
 const sortDungeonsBy = (dungeons, sortBy) => {
     return dungeons.sort((a, b) => {

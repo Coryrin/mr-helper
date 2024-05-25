@@ -182,7 +182,7 @@ function calculateScores(isFortifiedBest, dungeon, dungeonShortName) {
     }
 
     if (!dungeon.fortified.score && !dungeon.tyrannical.score) {
-        const score = getDungeonScore(2, [{name: 'tyrannical'}], true);
+        const score = getDungeonScore(2);
 
         return {
             potentialScore: score,
@@ -329,7 +329,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
 
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
-        const score = getDungeonScore(levelToSimulate, affixes);
+        const score = getDungeonScore(levelToSimulate);
         const currentScore = dungeon.score * 1.5;
 
         if (currentScore > score) {
@@ -359,7 +359,7 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
         const affixes = getNumAffixesForLevel(levelToSimulate);
 
         // Get base scores
-        const score = (getDungeonScore(levelToSimulate, affixes) / 3);
+        const score = (getDungeonScore(levelToSimulate) / 3);
         const currentScore = ((dungeon.score * 1.5) / 3);
 
         if (currentScore > score) {
@@ -407,7 +407,7 @@ async function getDataForBestRuns(data) {
         dungeon.dungeonLongName = dungeon.dungeon;
 
         dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
-        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes, true);
+        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel);
         dungeon.potentialScore = (targetKeystoneDungeonScore - currentDungeonScore);
 
         potentialMinimumScore += dungeon.potentialScore;

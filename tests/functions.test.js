@@ -4,30 +4,11 @@ const {
     lookupDungeonFromShortname,
 } = require('../reusables/functions');
 
-const AFFIXES = [
-    {
-        name: 'tyrannical',
-    },
-    {
-        name: 'bursting',
-    },
-    {
-        name: 'bolstering',
-    },
-];
-
 test('getDungeonScore', () => {
-    const affixesToTest = [AFFIXES[0]];
+    expect(getDungeonScore(2)).toBe(94);
 
-    expect(getDungeonScore(2, affixesToTest)).toBe(60);
-
-    affixesToTest.push(AFFIXES[1]);
-
-    expect(getDungeonScore(7, affixesToTest)).toBe(112.5);
-
-    affixesToTest.push(AFFIXES[2]);
-
-    expect(getDungeonScore(14, affixesToTest)).toBe(192);
+    expect(getDungeonScore(5)).toBe(125);
+    expect(getDungeonScore(10)).toBe(170);
 });
 
 test('getKeystoneLevelToRun', () => {
@@ -80,7 +61,7 @@ test('getKeystoneLevelToRun', () => {
 });
 
 test('getDungeonFromShortname', () => {
-    expect(lookupDungeonFromShortname('BRH')).toBe('Black Rook Hold');
+    expect(lookupDungeonFromShortname('BH')).toBe('Brackenhide Hollow');
 
     expect(lookupDungeonFromShortname('')).toBe('Dungeon not found');
 });

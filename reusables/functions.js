@@ -241,7 +241,7 @@ const lookupDungeonFromShortname = (shortName) => {
         'AA': 'Algethar Academy',
         'ULD': 'Uldaman: Legacy of Tyr',
         'HOI': 'Halls of Infusion',
-        'BRH': 'Brackenhide Hollow',
+        'BH': 'Brackenhide Hollow',
         'NELT': 'Neltharus',
         'RLP': 'Ruby Life Pools',
         'AV': 'The Azure Vault',

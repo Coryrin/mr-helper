@@ -35,7 +35,7 @@ class DungeonService {
     }
 
     getAffixesForLevel(level) {
-        if (level >= 10) {
+        if (level >= 12) {
             return [
                 {
                     "id": 9,
@@ -48,6 +48,23 @@ class DungeonService {
                   {
                     "id": 147,
                     "name": "Xal'atath's Guile",
+                  }
+            ];
+        }
+
+        if (level >= 10) {
+            return [
+                {
+                    "id": 148,
+                    "name": "Xal'atath's Bargain: Ascendant",
+                  },
+                  {
+                    "id": 9,
+                    "name": "Tyrannical",
+                  },
+                  {
+                    "id": 10,
+                    "name": "Fortified",
                   }
             ];
         }

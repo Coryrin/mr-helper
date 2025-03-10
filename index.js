@@ -18,35 +18,13 @@ client.commands = new Collection();
 
 loadCommands(client);
 
-const prefix = '!';
-client.on('message', async message => {
-    if (process.env.DEBUG && message.guild.id !== process.env.TESTING_GUILD_ID || !message.content.startsWith(prefix)) {
-        return;
-    }
-
-    const formattedMessage = prepareMessage(message);
-    const args = formattedMessage.trim().split(/ + /g);
-    const cmd = args[0].slice();
-    const cmdParts = cmd.split(' ');
-    const cmdName = cmdParts[0];
-    const command = client.commands.get(cmdName);
-
-    if (!command) {
-        return;
-    }
-
-    console.log(args);
-
-    command.execute(message, formattedMessage, false);
-});
-
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) {
         return;
     }
 
 	const command = client.commands.get(interaction.commandName);
-
+    
     if (!command) {
         return;
     }

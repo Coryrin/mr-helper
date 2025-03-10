@@ -13,17 +13,51 @@ const {
     sendStructuredResponseToUserViaSlashCommand,
     getHelpJson
 } = require('../../reusables/functions');
+const { DungeonService } = require('../../services/DungeonService');
+const { DungeonScoreService } = require('../../services/DungeonScoreService');
 
 async function getDungeonData(args, interaction, interactionMethod) {
     const res = await requestData(args);
 
-    if (args.getAltRuns) {
-        return await getDataForAlternateRuns(res.data);
-    } else if (args.getBestRuns) {
-        return await getDataForBestRuns(res.data);
-    } else if (args.isSimulateCommand) {
+    if (args.isSimulateCommand) {
         return await simulateLevel(res.data, args.simulateLevel, interaction, interactionMethod);
     }
+
+    return await calculateMinimumImprovements(res.data);
+}
+
+function calculateMinimumImprovements(data) {
+    const dungeonService = new DungeonService();
+    const dungeons = dungeonService.buildMissingDungeons(data.mythic_plus_best_runs);
+    const dungeonScoreService = new DungeonScoreService();
+    let currentScore = 0;
+
+    for (const dungeon of dungeons) {
+        const startLevelToCheck = dungeon.mythic_level === 0 ? 2 : dungeon.mythic_level;
+
+        const currentScoreAtLevel = dungeonScoreService
+            .setLevel(startLevelToCheck)
+            .setAffixes(dungeonService.getAffixesForLevel(dungeon.mythic_level))
+            .calculateScore();
+        currentScore += dungeon.score;
+
+        if (currentScoreAtLevel > dungeon.score + 10) {
+            dungeon.potentialMinimumScore = currentScoreAtLevel - dungeon.score;
+            dungeon.target_level = startLevelToCheck;
+            continue;
+        }
+
+        const nextLevel = dungeon.mythic_level + 1;
+        const score = dungeonScoreService
+            .setLevel(nextLevel)
+            .setAffixes(dungeonService.getAffixesForLevel(nextLevel))
+            .calculateScore();
+
+        dungeon.potentialMinimumScore = score - dungeon.score;
+        dungeon.target_level = nextLevel;
+    }
+
+    return dungeons;
 }
 
 function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
@@ -393,82 +427,6 @@ function simulateLevel(data, levelToSimulate, interaction, interactionMethod) {
     };
 }
 
-async function getDataForBestRuns(data) {
-    const sortedDungeons = sortDungeonsBy(data.mythic_plus_best_runs, 'mythic_level');
-    const highestRun = sortedDungeons[0];
-    let currentScore = 0;
-    let potentialMinimumScore = 0;
-
-    for (const dungeon of sortedDungeons) {
-        const currentDungeonScore = dungeon.score * 1.5;
-        currentScore += currentDungeonScore;
-
-        dungeon.affix = getTyrannicalOrFortifiedForDungeon(dungeon);
-        dungeon.dungeonLongName = dungeon.dungeon;
-
-        dungeon.keystoneLevel = getKeystoneLevelToRun(highestRun, dungeon);
-        const targetKeystoneDungeonScore = getDungeonScore(dungeon.keystoneLevel, highestRun.affixes, true);
-        dungeon.potentialScore = (targetKeystoneDungeonScore - currentDungeonScore);
-
-        potentialMinimumScore += dungeon.potentialScore;
-    }
-
-    for (const dungeon of data.mythic_plus_alternate_runs) {
-        currentScore += dungeon.score / 2;
-    }
-
-    return {
-        dungeons: sortedDungeons,
-        totalScore: currentScore,
-        potentialMinScore: potentialMinimumScore,
-    };
-}
-
-async function getDataForAlternateRuns(data) {
-    const allDungeons = getBlankDataStructure();
-
-    for (const dungeon of data.mythic_plus_best_runs) {
-        dungeon.isBestRun = true;
-        const isFortified = dungeon.affixes[0].id === 10;
-        let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
-
-        allDungeons[dungeon.short_name][allDungeonsTarget] = dungeon;
-    }
-
-    for (const dungeon of data.mythic_plus_alternate_runs) {
-        dungeon.isBestRun = false;
-        const isFortified = dungeon.affixes[0].id === 10;
-        let allDungeonsTarget = isFortified ? 'fortified' : 'tyrannical';
-
-        allDungeons[dungeon.short_name][allDungeonsTarget] = dungeon;
-    }
-
-    let totalScore = 0;
-    let pointsFromAltRuns = 0;
-    const dungeons = [];
-
-    for (const dungeonName of Object.keys(allDungeons)) {
-        const dungeon = allDungeons[dungeonName];
-        const isFortifiedBest = dungeon.fortified.isBestRun;
-        const scores = calculateScores(isFortifiedBest, dungeon, dungeonName);
-
-        totalScore += scores.totalScore;
-        pointsFromAltRuns += Math.ceil(scores.potentialScore);
-        dungeons.push(scores);
-    }
-
-    console.log('---------------------------------------------------------------------------------------------');
-    console.log(`Current score for ${data.name}: ${Math.round(totalScore)}`);
-    console.log(`The minimum points you can earn from improving your alt runs are: ${pointsFromAltRuns}`);
-    console.log('---------------------------------------------------------------------------------------------');
-
-    return {
-        dungeons: dungeons,
-        totalScore: totalScore,
-        potentialMinScore: pointsFromAltRuns
-    };
-}
-
 function dataToAsciiTable(dungeons, currentScore, potentialMinScore, isSimulated=false) {
     const dungeonData = {
         title: '',
@@ -526,7 +484,6 @@ module.exports = {
                 heading: 'Examples',
                 rows: [
                     ['/mr-helper eu/argent-dawn/ellorett'],
-                    ['/mr-helper eu/argent-dawn/ellorett --best-runs'],
                     ['/mr-helper eu/argent-dawn/ellorett --simulate 15'],
                 ]
             });
@@ -581,12 +538,15 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
+
+            return method(interaction, formatData(allData));
         
             const dataToSend = dataToAsciiTable(allData.dungeons, allData.totalScore, allData.potentialMinScore, args.isSimulateCommand);
 
             return method(interaction, dataToSend, !args.isSimulateCommand);
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
+            console.log(err);
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
@@ -595,3 +555,31 @@ module.exports = {
         }
     },
 };
+
+const formatData = (dungeons) => {
+    const dungeonData = {
+        title: '',
+        heading: ['Dungeon', 'Current Timed Level', 'Target Level', 'Minimum point increase'],
+        rows: []
+    };
+
+    const sortedDungeons = sortDungeonsBy(dungeons, 'potentialMinimumScore');
+
+    let totalPoints = 0;
+    for (const dungeon of sortedDungeons) {
+        const pointsForDungeon = Math.ceil(dungeon.potentialMinimumScore);
+        dungeonData.rows.push([
+            dungeon.dungeon,
+            dungeon.mythic_level,
+            dungeon.target_level,
+            `${pointsForDungeon} points`
+        ]);
+
+        totalPoints += pointsForDungeon;
+    }
+
+    dungeonData.rows.push([]);
+    dungeonData.rows.push([`ScoreIncrease: ${totalPoints}`]);
+
+    return buildTableFromJson(dungeonData);
+}

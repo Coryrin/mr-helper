@@ -287,11 +287,11 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
+            console.log(`Score Generated for: ${args.region}/${args.realm}/${args.name}`);
 
             return method(interaction, formatData(allData));
         } catch (err) {
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
-            console.log(err);
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }

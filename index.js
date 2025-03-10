@@ -1,6 +1,5 @@
 const { Client, Collection, Intents } = require('discord.js');
 const { loadCommands } = require('./handler/loadCommands');
-const { prepareMessage } = require('./reusables/functions');
 require('dotenv').config();
 
 const client = new Client({ 

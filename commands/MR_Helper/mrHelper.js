@@ -203,7 +203,23 @@ async function requestData(args) {
     } catch (error) {
         console.log('error', error);
     }
-    
+}
+
+const handleError = async (error, interaction) => {
+    if (error.code === 50001 || error.code === 50013) {
+        const owner = await interaction.channel.guild.fetchOwner();
+        if (!owner) {
+            return;
+        }
+
+        owner.send(
+            "Hey! It looks like I don't have the necessary permissions to function properly in your server.\n"+
+            "Please reinvite me using the link on our website: https://www.mr-helper.xyz/\n"+
+            "This is an automated message. If you have any queries, please reach out to coryrin on discord, or use the development discord group."
+        );
+
+        sendStructuredResponseToUserViaSlashCommand(interaction, 'There was an error with the permissions. We\'ve notified the server admin.');
+    }
 }
 
 module.exports = {
@@ -233,13 +249,18 @@ module.exports = {
                 heading: 'Examples',
                 rows: [
                     ['/mr-helper eu/argent-dawn/ellorett'],
-                    ['/mr-helper eu/argent-dawn/ellorett --simulate 15'],
+                    ['/mr-helper eu/argent-dawn/ellorett --simulate 10'],
                 ]
             });
 
             const output = `\n${tableString}\n\n ${exampleString}`;
 
-            return method(interaction, output);
+            try {
+                return method(interaction, output);
+            } catch (error) {
+                handleError(error, interaction);
+                return;
+            }
         }
 
         if (args.isInfoCommand) {
@@ -278,7 +299,11 @@ module.exports = {
                 ]
             };
 
-            return sendEmbeddedMessage(interaction, messageObject);
+            try {
+                return sendEmbeddedMessage(interaction, messageObject);
+            } catch (error) {
+                return handleError(error, interaction);
+            }
         }
 
         if (args.error) {
@@ -287,7 +312,7 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
-            console.log(`Score Generated for: ${args.region}/${args.realm}/${args.name}`);
+            console.log(`Score Generated for: ${args.region}/${args.realm}/${args.name} Type: ${args.isSimulateCommand ? 'simulate' : 'normal'}`);
 
             return method(interaction, formatData(allData));
         } catch (err) {
@@ -295,6 +320,8 @@ module.exports = {
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
+
+            handleError(error, interaction);
 
             return method(interaction, errorMessageToSend);
         }

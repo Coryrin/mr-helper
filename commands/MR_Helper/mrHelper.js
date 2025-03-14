@@ -102,6 +102,7 @@ function buildArgsDataObject(cmdParts, argsDataObj, messageChannel) {
             argsDataObj.region = regionRealmName[0];
             argsDataObj.realm = regionRealmName[1];
             argsDataObj.name = regionRealmName[2];
+            argsDataObj.realm = argsDataObj.realm.replace("'", '');
 
             isSimplifiedCommand = true;
         }

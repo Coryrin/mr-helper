@@ -322,7 +322,7 @@ module.exports = {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
             }
 
-            handleError(error, interaction);
+            handleError(err, interaction);
 
             return method(interaction, errorMessageToSend);
         }

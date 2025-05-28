@@ -30,6 +30,8 @@ function calculateSimulatedLevel(data, levelToSimulate) {
     for (const dungeon of dungeons) {
         currentScore += dungeon.score;
         if (dungeon.mythic_level >= levelToSimulate) {
+            dungeon.potentialMinimumScore = 0;
+            dungeon.target_level = dungeon.mythic_level;
             continue;
         }
 

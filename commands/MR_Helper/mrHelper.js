@@ -10,19 +10,22 @@ const {
 } = require('../../reusables/functions');
 const { DungeonService } = require('../../services/DungeonService');
 const { DungeonScoreService } = require('../../services/DungeonScoreService');
+const { DetermineSeasonDungeonService } = require('../../services/DetermineSeasonDungeonService');
 
 async function getDungeonData(args) {
     const res = await requestData(args);
 
+    const dungeons = new DetermineSeasonDungeonService().execute(args.region);
+
     if (args.isSimulateCommand) {
-        return calculateSimulatedLevel(res.data, args.simulateLevel);
+        return calculateSimulatedLevel(res.data, args.simulateLevel, dungeons);
     }
 
-    return calculateMinimumImprovements(res.data);
+    return calculateMinimumImprovements(res.data, dungeons);
 }
 
-function calculateSimulatedLevel(data, levelToSimulate) {
-    const dungeonService = new DungeonService();
+function calculateSimulatedLevel(data, levelToSimulate, seasonDungeons) {
+    const dungeonService = new DungeonService(seasonDungeons);
     const dungeonScoreService = new DungeonScoreService();
     const dungeons = dungeonService.buildMissingDungeons(data.mythic_plus_best_runs);
     let currentScore = 0;
@@ -50,8 +53,9 @@ function calculateSimulatedLevel(data, levelToSimulate) {
     };
 }
 
-function calculateMinimumImprovements(data) {
-    const dungeonService = new DungeonService();
+function calculateMinimumImprovements(data, seasonDungeons) {
+    console.log(seasonDungeons);
+    const dungeonService = new DungeonService(seasonDungeons);
     const dungeons = dungeonService.buildMissingDungeons(data.mythic_plus_best_runs);
     const dungeonScoreService = new DungeonScoreService();
     let currentScore = 0;

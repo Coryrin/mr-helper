@@ -15,7 +15,7 @@ const { DetermineSeasonDungeonService } = require('../../services/DetermineSeaso
 async function getDungeonData(args) {
     const res = await requestData(args);
 
-    const dungeons = new DetermineSeasonDungeonService().execute(args.region);
+    const dungeons = new DetermineSeasonDungeonService().execute();
 
     if (args.isSimulateCommand) {
         return calculateSimulatedLevel(res.data, args.simulateLevel, dungeons);
@@ -54,7 +54,6 @@ function calculateSimulatedLevel(data, levelToSimulate, seasonDungeons) {
 }
 
 function calculateMinimumImprovements(data, seasonDungeons) {
-    console.log(seasonDungeons);
     const dungeonService = new DungeonService(seasonDungeons);
     const dungeons = dungeonService.buildMissingDungeons(data.mythic_plus_best_runs);
     const dungeonScoreService = new DungeonScoreService();

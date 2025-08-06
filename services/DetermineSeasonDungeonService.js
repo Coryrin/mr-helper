@@ -1,36 +1,19 @@
-const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 class DetermineSeasonDungeonService {
-    CURRENT_EXPANSION = 'tww';
-
     constructor() {
         const baseDir = path.join(__dirname, '..');
-        this.parentDir = path.join(baseDir, 'data/' + this.CURRENT_EXPANSION);
+        this.parentDir = path.join(baseDir, 'data/' + process.env.EXPANSION);
     }
 
-    execute(region) {
-        const seasons = fs.readdirSync(this.parentDir).filter(name => {
-            const fullPath = path.join(this.parentDir, name);
-            return fs.statSync(fullPath).isDirectory();
-        });
+    execute() {
+        const season = process.env.SEASON;
 
-        for (const season of seasons) {
-            const subdirPath = path.join(this.parentDir, season);
-            const files = fs.readdirSync(subdirPath);
-            const times = require(path.join(subdirPath, 'times.json'));
+        const seasonDir = path.join(this.parentDir, season);
+        const dungeons = require(path.join(seasonDir, 'dungeons.json'));
 
-            const startTime = new Date(times['starts'][region]);
-            const endTime = new Date(times['ends'][region]);
-
-            const now = new Date();
-
-            if (now >= startTime && now <= endTime) {
-                const dungeons = require(path.join(subdirPath, 'dungeons.json'));
-
-                return dungeons;
-            }
-        }
+        return dungeons;
     }
 }
 

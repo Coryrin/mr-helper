@@ -28,7 +28,7 @@ const levelScoreMap = new Map([
 ])
 
 test('Get Dungeon Score', () => {
-    for (i = 2; i <= 20; i++) {
+    for (let i = 2; i <= 20; i++) {
         const expectedScore = levelScoreMap.get(i);
         const score = dungeonScoreService
             .setLevel(i)

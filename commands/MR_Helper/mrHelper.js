@@ -249,70 +249,6 @@ module.exports = {
 
         const args = parseMessageForArgs(message, interaction.channel);
 
-        if (args.isHelpCommand) {
-            const tableString = buildTableFromJson(getHelpJson());
-            const exampleString = buildTableFromJson({
-                title: '',
-                heading: 'Examples',
-                rows: [
-                    ['/mr-helper eu/argent-dawn/ellorett'],
-                    ['/mr-helper eu/argent-dawn/ellorett --simulate 10'],
-                ]
-            });
-
-            const output = `\n${tableString}\n\n ${exampleString}`;
-
-            try {
-                return method(interaction, output);
-            } catch (error) {
-                handleError(error, interaction);
-                return;
-            }
-        }
-
-        if (args.isInfoCommand) {
-            const messageObject = {
-                title: 'Mythic Rating Helper',
-                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by analyzing their runs, and informing them of their most optimal dungeons to run.',
-                author: {
-                    name: 'Coryrin',
-                    link: 'https://www.corymeikle.com/',
-                    img: 'https://cdn.discordapp.com/attachments/647425968993992715/838076418570452992/20210501_163408.jpg',
-                },
-                fields: [
-                    {
-                        name: 'GitHub',
-                        value: '[Code](https://github.com/Coryrin/mr-helper)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Twitter',
-                        value: '[Follow me on Twitter](https://twitter.com/MRatingHelper)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Website',
-                        value: '[Check out our website!](https://www.mr-helper.xyz/)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Discord',
-                        value: '[Join the development discord!](https://discord.gg/ucgP4dvmtQ)',
-                    },
-                    {
-                        name: 'Support',
-                        value: '[Please consider supporting us](https://ko-fi.com/mythicratinghelper)',
-                    }
-                ]
-            };
-
-            try {
-                return sendEmbeddedMessage(interaction, messageObject);
-            } catch (error) {
-                return handleError(error, interaction);
-            }
-        }
-
         if (args.error) {
             return;
         }
@@ -331,9 +267,12 @@ module.exports = {
                 score: Math.ceil(allData.currentScore),
                 totalScoreIncrease: totalPoints,
                 dungeons: sortedDungeons,
+                message,
             });
 
-            const attachment = new MessageAttachment(image, 'result.png');
+            const fileName = message.split('/');
+            fileName.push(new Date().toDateString());
+            const attachment = new MessageAttachment(image, fileName.join('-') + '.png');
 
             return interaction.editReply({
                 files: [attachment],
@@ -353,32 +292,3 @@ module.exports = {
         }
     },
 };
-
-const formatData = (data) => {
-    const dungeonData = {
-        title: '',
-        heading: ['Dungeon', 'Current Timed Level', 'Target Level', 'Minimum point increase'],
-        rows: []
-    };
-
-    const sortedDungeons = sortDungeonsBy(data.dungeons, 'potentialMinimumScore');
-
-    let totalPoints = 0;
-    for (const dungeon of sortedDungeons) {
-        const pointsForDungeon = Math.ceil(dungeon.potentialMinimumScore);
-        dungeonData.rows.push([
-            dungeon.dungeon,
-            dungeon.mythic_level,
-            dungeon.target_level,
-            `${pointsForDungeon} points`
-        ]);
-
-        totalPoints += pointsForDungeon;
-    }
-
-    dungeonData.rows.push([]);
-    dungeonData.rows.push([`Current Score: ${Math.floor(data.currentScore)}`])
-    dungeonData.rows.push([`Score Increase: ${totalPoints}`]);
-
-    return buildTableFromJson(dungeonData);
-}

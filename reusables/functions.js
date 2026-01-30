@@ -1,5 +1,7 @@
 const ascii = require('ascii-table');
 const { MessageEmbed } = require('discord.js');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
+
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7;
@@ -237,7 +239,6 @@ const prepareMessage = (message) => {
     return targetKeystoneLevel;
 };
 
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
 
 async function generateMythicImage(data) {
     const width = 900;
@@ -248,7 +249,7 @@ async function generateMythicImage(data) {
     const bg = await loadImage('public/bg.png');
     ctx.drawImage(bg, 0, 0, width, height);
 
-    ctx.fillStyle = 'rgba(0,0,0,0.5)'; // semi-transparent black overlay
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(0, 0, width, height);
 
     ctx.fillStyle = '#a78bfa';
@@ -257,6 +258,7 @@ async function generateMythicImage(data) {
 
     ctx.font = '24px Sans';
     ctx.fillStyle = '#e5e7eb';
+
     ctx.fillText(`Current Score: ${Math.ceil(data.score)}`, 40, 110);
     ctx.fillText(`Minimum Total Score Increase: +${data.totalScoreIncrease}`, 40, 145);
     ctx.fillText(`Score after all runs: ${Math.ceil(data.score) + data.totalScoreIncrease}`, 40, 180);
@@ -293,6 +295,18 @@ async function generateMythicImage(data) {
         // );
 
         y += 36;
+    }
+
+    ctx.strokeStyle = '#374151';
+    ctx.beginPath();
+    ctx.moveTo(40, y);
+    ctx.lineTo(width - 40, y);
+    ctx.stroke();
+
+    ctx.font = '16px Sans';
+    ctx.fillStyle = '#e5e7eb';
+    if (data.message) {
+        ctx.fillText(data.message, 40, y + 20);
     }
 
     return canvas.toBuffer('image/png');

@@ -133,7 +133,7 @@ const sendEmbeddedMessage = (messageChannel, messageObj) => {
         .setTimestamp();
 
     try {
-        messageChannel.editReply({
+        messageChannel.reply({
             content: '\u200b',
             embeds: [embedMessage]
         });

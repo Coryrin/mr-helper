@@ -240,8 +240,6 @@ module.exports = {
     async execute(interaction, message, isSlashCommand) {
         if (isSlashCommand) {
             await interaction.reply('Working on it...');
-        } else {
-            await interaction.reply('Warning - the \'!\' prefix has been deprecated to keep up to date with Discord\'s bot standards. Please use the slash commands.');
         }
 
         const method = isSlashCommand ? sendStructuredResponseToUserViaSlashCommand : sendStructuredResponseToUser;
@@ -318,10 +316,49 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
+            const sortedDungeons = sortDungeonsBy(allData.dungeons, 'potentialMinimumScore');
+            let totalPoints = 0;
+            let currentScore = 0;
+
+            const embed = {
+                title: 'Your Score Breakdown',
+                color: 0x8b5cf6,
+                description: '',
+                author: {
+                    name: 'Mythic Rating Helper',
+                    link: 'https://www.mr-helper.xyz',
+                    img: 'https://cdn.discordapp.com/attachments/647425968993992715/838076418570452992/20210501_163408.jpg',
+                },
+                fields: [
+                    {
+                        name: "Dungeons",
+                        value: sortedDungeons.map((dungeon => {
+                            totalPoints += Math.ceil((dungeon.potentialMinimumScore));
+                            currentScore += dungeon.score;
+                            return `${dungeon.dungeon} - ${dungeon.mythic_level} -> ${dungeon.target_level} **(+${Math.ceil(dungeon.potentialMinimumScore)} pts)**` 
+                        })).join("\n")
+                    },
+                    {
+                        name: "Score",
+                        value: `Current score: ${Math.ceil(currentScore)} \n Minimum score increase: ${totalPoints}`
+                    },
+                    {
+                        name: "Useful links",
+                        value: 'Do you find Mythic Rating Helper useful? [Please consider supporting us](https://ko-fi.com/mythicratinghelper)\n' +
+                                'Found an issue? [Report it on GitHub](https://github.com/Coryrin/mr-helper)\n' +
+                                'Want to join the discord? [Join here](https://discord.gg/ucgP4dvmtQ)'
+
+                    },
+                ],
+            };
+
             console.log(`Score Generated for: ${args.region}/${args.realm}/${args.name} Type: ${args.isSimulateCommand ? 'simulate' : 'normal'}`);
 
-            return method(interaction, formatData(allData));
+            return sendEmbeddedMessage(interaction, embed);
+
+            // return method(interaction, formatData(allData));
         } catch (err) {
+            console.error(err);
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;

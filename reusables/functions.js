@@ -124,15 +124,17 @@ const getHelpJson = () => {
 
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(messageObj.color)
         .setTitle(messageObj.title)
         .setAuthor(messageObj.author.name, messageObj.author.img, messageObj.author.link)
         .setDescription(messageObj.description)
         .addFields(messageObj.fields)
+        .setFooter(messageObj.footer ?? '')
         .setTimestamp();
 
     try {
-        messageChannel.reply({
+        messageChannel.editReply({
+            content: '\u200b',
             embeds: [embedMessage]
         });
     } catch (err) {
@@ -166,38 +168,6 @@ const sortDungeonsBy = (dungeons, sortBy) => {
 
         return -1;
     });
-};
-
-const prepareMessage = (message) => {
-    let formattedMessage = message.content.substring(1);
-
-    try {
-        const channelPrefixes = message.channel.topic;
-        let allPrefixes = [];
-
-        if (channelPrefixes !== null && channelPrefixes !== '') {
-            allPrefixes = channelPrefixes.split(' ');
-        }
-
-        if (!formattedMessage.includes('--realm')) {
-            const realmIndex = allPrefixes.indexOf('--realm');
-            if (realmIndex > -1) {
-                formattedMessage = `${formattedMessage} --realm ${allPrefixes[realmIndex + 1]}`;
-            }
-        }
-
-        if (!formattedMessage.includes('--region')) {
-            const regionIndex = allPrefixes.indexOf('--region');
-            if (regionIndex > -1) {
-                formattedMessage = `${formattedMessage} --region ${allPrefixes[regionIndex + 1]}`;
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        console.error('ERROR: ', formattedMessage, message);
-    }
-
-    return formattedMessage;
 };
 
 /**
@@ -235,21 +205,6 @@ const prepareMessage = (message) => {
     return targetKeystoneLevel;
 };
 
-const lookupDungeonFromShortname = (shortName) => {
-    const dungeons = {
-        'AA': 'Algethar Academy',
-        'ULD': 'Uldaman: Legacy of Tyr',
-        'HOI': 'Halls of Infusion',
-        'BH': 'Brackenhide Hollow',
-        'NELT': 'Neltharus',
-        'RLP': 'Ruby Life Pools',
-        'AV': 'The Azure Vault',
-        'NO': 'The Nokhud Offensive',
-    };
-
-    return dungeons[shortName] || 'Dungeon not found';
-};
-
 const arrayDiff = (firstArray, ...arrays) => {
     const allArrays = [].concat.apply([], arrays);
 
@@ -257,13 +212,11 @@ const arrayDiff = (firstArray, ...arrays) => {
 };
 
 module.exports = {
-    lookupDungeonFromShortname,
     buildTableFromJson,
     sendStructuredResponseToUser,
     sendEmbeddedMessage,
     getDungeonScore,
     sortDungeonsBy,
-    prepareMessage,
     getKeystoneLevelToRun,
     getNumAffixesForLevel,
     arrayDiff,

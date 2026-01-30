@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageAttachment } = require('discord.js');
 const { default: axios } = require('axios');
 const {
     buildTableFromJson,
@@ -6,7 +7,8 @@ const {
     sendEmbeddedMessage,
     sortDungeonsBy,
     sendStructuredResponseToUserViaSlashCommand,
-    getHelpJson
+    getHelpJson,
+    generateMythicImage
 } = require('../../reusables/functions');
 const { DungeonService } = require('../../services/DungeonService');
 const { DungeonScoreService } = require('../../services/DungeonScoreService');
@@ -201,6 +203,7 @@ function buildRequestUrl(args) {
 
 async function requestData(args) {
     const url = buildRequestUrl(args);
+
     try {
         return await axios({
             method: 'get',
@@ -240,77 +243,11 @@ module.exports = {
     async execute(interaction, message, isSlashCommand) {
         if (isSlashCommand) {
             await interaction.reply('Working on it...');
-        } else {
-            await interaction.reply('Warning - the \'!\' prefix has been deprecated to keep up to date with Discord\'s bot standards. Please use the slash commands.');
         }
 
         const method = isSlashCommand ? sendStructuredResponseToUserViaSlashCommand : sendStructuredResponseToUser;
 
         const args = parseMessageForArgs(message, interaction.channel);
-
-        if (args.isHelpCommand) {
-            const tableString = buildTableFromJson(getHelpJson());
-            const exampleString = buildTableFromJson({
-                title: '',
-                heading: 'Examples',
-                rows: [
-                    ['/mr-helper eu/argent-dawn/ellorett'],
-                    ['/mr-helper eu/argent-dawn/ellorett --simulate 10'],
-                ]
-            });
-
-            const output = `\n${tableString}\n\n ${exampleString}`;
-
-            try {
-                return method(interaction, output);
-            } catch (error) {
-                handleError(error, interaction);
-                return;
-            }
-        }
-
-        if (args.isInfoCommand) {
-            const messageObject = {
-                title: 'Mythic Rating Helper',
-                description: 'Mythic Rating Helper is a bot designed to help WoW players improve their mythic rating by analyzing their runs, and informing them of their most optimal dungeons to run.',
-                author: {
-                    name: 'Coryrin',
-                    link: 'https://www.corymeikle.com/',
-                    img: 'https://cdn.discordapp.com/attachments/647425968993992715/838076418570452992/20210501_163408.jpg',
-                },
-                fields: [
-                    {
-                        name: 'GitHub',
-                        value: '[Code](https://github.com/Coryrin/mr-helper)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Twitter',
-                        value: '[Follow me on Twitter](https://twitter.com/MRatingHelper)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Website',
-                        value: '[Check out our website!](https://www.mr-helper.xyz/)',
-                        inline: true,
-                    },
-                    {
-                        name: 'Discord',
-                        value: '[Join the development discord!](https://discord.gg/ucgP4dvmtQ)',
-                    },
-                    {
-                        name: 'Support',
-                        value: '[Please consider supporting us](https://ko-fi.com/mythicratinghelper)',
-                    }
-                ]
-            };
-
-            try {
-                return sendEmbeddedMessage(interaction, messageObject);
-            } catch (error) {
-                return handleError(error, interaction);
-            }
-        }
 
         if (args.error) {
             return;
@@ -318,10 +255,32 @@ module.exports = {
 
         try {
             const allData = await getDungeonData(args, interaction, method);
+            const sortedDungeons = sortDungeonsBy(allData.dungeons, 'potentialMinimumScore');
+            let totalPoints = 0;
+            for (let i = 0; i < sortedDungeons.length; i++) {
+                totalPoints += Math.ceil(sortedDungeons[i].potentialMinimumScore);
+            }
+
             console.log(`Score Generated for: ${args.region}/${args.realm}/${args.name} Type: ${args.isSimulateCommand ? 'simulate' : 'normal'}`);
 
-            return method(interaction, formatData(allData));
+            const image = await generateMythicImage({
+                score: Math.ceil(allData.currentScore),
+                totalScoreIncrease: totalPoints,
+                dungeons: sortedDungeons,
+                message,
+            });
+
+            const fileName = message.split('/');
+            fileName.push(new Date().toDateString());
+            const attachment = new MessageAttachment(image, fileName.join('-') + '.png');
+
+            return interaction.editReply({
+                files: [attachment],
+                content: 'Finding Mythic Rating Helper helpful? [Please consider supporting me](<https://ko-fi.com/mythicratinghelper>)\n'+
+                    'Found an issue? [Report it on GitHub](<https://github.com/Coryrin/mr-helper>)\n'
+            });
         } catch (err) {
+            console.error(err);
             let errorMessageToSend = 'There was an error getting data from the server. Please try again.';
             if (err.response) {
                 errorMessageToSend = `Error: ${err.response.data.message}`;
@@ -333,32 +292,3 @@ module.exports = {
         }
     },
 };
-
-const formatData = (data) => {
-    const dungeonData = {
-        title: '',
-        heading: ['Dungeon', 'Current Timed Level', 'Target Level', 'Minimum point increase'],
-        rows: []
-    };
-
-    const sortedDungeons = sortDungeonsBy(data.dungeons, 'potentialMinimumScore');
-
-    let totalPoints = 0;
-    for (const dungeon of sortedDungeons) {
-        const pointsForDungeon = Math.ceil(dungeon.potentialMinimumScore);
-        dungeonData.rows.push([
-            dungeon.dungeon,
-            dungeon.mythic_level,
-            dungeon.target_level,
-            `${pointsForDungeon} points`
-        ]);
-
-        totalPoints += pointsForDungeon;
-    }
-
-    dungeonData.rows.push([]);
-    dungeonData.rows.push([`Current Score: ${Math.floor(data.currentScore)}`])
-    dungeonData.rows.push([`Score Increase: ${totalPoints}`]);
-
-    return buildTableFromJson(dungeonData);
-}

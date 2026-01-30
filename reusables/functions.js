@@ -1,5 +1,7 @@
 const ascii = require('ascii-table');
 const { MessageEmbed } = require('discord.js');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
+
 require('dotenv').config();
 
 const BASE_SCORE_PER_LEVEL = 7;
@@ -124,15 +126,17 @@ const getHelpJson = () => {
 
 const sendEmbeddedMessage = (messageChannel, messageObj) => {
     const embedMessage = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(messageObj.color)
         .setTitle(messageObj.title)
         .setAuthor(messageObj.author.name, messageObj.author.img, messageObj.author.link)
         .setDescription(messageObj.description)
         .addFields(messageObj.fields)
+        .setFooter(messageObj.footer ?? '')
         .setTimestamp();
 
     try {
         messageChannel.reply({
+            content: '\u200b',
             embeds: [embedMessage]
         });
     } catch (err) {
@@ -235,6 +239,80 @@ const prepareMessage = (message) => {
     return targetKeystoneLevel;
 };
 
+
+async function generateMythicImage(data) {
+    const width = 900;
+    const height = 600;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    const bg = await loadImage('public/bg.png');
+    ctx.drawImage(bg, 0, 0, width, height);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#a78bfa';
+    ctx.font = 'bold 42px Sans';
+    ctx.fillText('Mythic Rating Helper', 40, 60);
+
+    ctx.font = '24px Sans';
+    ctx.fillStyle = '#e5e7eb';
+
+    ctx.fillText(`Current Score: ${Math.ceil(data.score)}`, 40, 110);
+    ctx.fillText(`Minimum Total Score Increase: +${data.totalScoreIncrease}`, 40, 145);
+    ctx.fillText(`Score after all runs: ${Math.ceil(data.score) + data.totalScoreIncrease}`, 40, 180);
+
+    ctx.strokeStyle = '#374151';
+    ctx.beginPath();
+    ctx.moveTo(40, 200);
+    ctx.lineTo(width - 40, 200);
+    ctx.stroke();
+
+    let y = 230;
+
+    ctx.font = '20px Sans';
+
+    ctx.fillStyle = '#86efac';
+    ctx.fillText('Dungeon Name', 40, y);
+    ctx.fillText('Current Level', 360, y);
+    ctx.fillText('Target Level', 520, y);
+    ctx.fillText('Score Increase', 680, y);
+
+    y = 270;
+
+    for (const dungeon of data.dungeons) {
+        ctx.fillText(dungeon.dungeon, 40, y);
+
+        ctx.fillText(dungeon.mythic_level, 360, y);
+        ctx.fillText(dungeon.target_level, 520, y);
+        ctx.fillText(`+${Math.ceil(dungeon.potentialMinimumScore)} points`, 680, y);
+
+        // ctx.fillText(
+        //     `${dungeon.mythic_level} → ${dungeon.target_level} (+${Math.ceil(dungeon.potentialMinimumScore)})`,
+        //     520,
+        //     y
+        // );
+
+        y += 36;
+    }
+
+    ctx.strokeStyle = '#374151';
+    ctx.beginPath();
+    ctx.moveTo(40, y);
+    ctx.lineTo(width - 40, y);
+    ctx.stroke();
+
+    ctx.font = '16px Sans';
+    ctx.fillStyle = '#e5e7eb';
+    if (data.message) {
+        ctx.fillText(data.message, 40, y + 20);
+    }
+
+    return canvas.toBuffer('image/png');
+}
+
+
 const lookupDungeonFromShortname = (shortName) => {
     const dungeons = {
         'AA': 'Algethar Academy',
@@ -268,5 +346,6 @@ module.exports = {
     getNumAffixesForLevel,
     arrayDiff,
     sendStructuredResponseToUserViaSlashCommand,
-    getHelpJson
+    getHelpJson,
+    generateMythicImage
 };

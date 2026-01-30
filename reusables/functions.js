@@ -170,6 +170,38 @@ const sortDungeonsBy = (dungeons, sortBy) => {
     });
 };
 
+const prepareMessage = (message) => {
+    let formattedMessage = message.content.substring(1);
+
+    try {
+        const channelPrefixes = message.channel.topic;
+        let allPrefixes = [];
+
+        if (channelPrefixes !== null && channelPrefixes !== '') {
+            allPrefixes = channelPrefixes.split(' ');
+        }
+
+        if (!formattedMessage.includes('--realm')) {
+            const realmIndex = allPrefixes.indexOf('--realm');
+            if (realmIndex > -1) {
+                formattedMessage = `${formattedMessage} --realm ${allPrefixes[realmIndex + 1]}`;
+            }
+        }
+
+        if (!formattedMessage.includes('--region')) {
+            const regionIndex = allPrefixes.indexOf('--region');
+            if (regionIndex > -1) {
+                formattedMessage = `${formattedMessage} --region ${allPrefixes[regionIndex + 1]}`;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        console.error('ERROR: ', formattedMessage, message);
+    }
+
+    return formattedMessage;
+};
+
 /**
  * Calculate the keystone level to run for the current dungeon iteration.
  * If our highest run was timed, we should aim to increase our dungeons to that + num the key was upgraded by.
@@ -205,6 +237,83 @@ const sortDungeonsBy = (dungeons, sortBy) => {
     return targetKeystoneLevel;
 };
 
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
+
+async function generateMythicImage(data) {
+    const width = 900;
+    const height = 600;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    const bg = await loadImage('public/bg.png');
+    ctx.drawImage(bg, 0, 0, width, height);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; // semi-transparent black overlay
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#a78bfa';
+    ctx.font = 'bold 42px Sans';
+    ctx.fillText('Mythic Rating Helper', 40, 60);
+
+    ctx.font = '24px Sans';
+    ctx.fillStyle = '#e5e7eb';
+    ctx.fillText(`Current Score: ${Math.ceil(data.score)}`, 40, 110);
+    ctx.fillText(`Minimum Total Score Increase: +${data.totalScoreIncrease}`, 40, 145);
+    ctx.fillText(`Score after all runs: ${Math.ceil(data.score) + data.totalScoreIncrease}`, 40, 180);
+
+    ctx.strokeStyle = '#374151';
+    ctx.beginPath();
+    ctx.moveTo(40, 200);
+    ctx.lineTo(width - 40, 200);
+    ctx.stroke();
+
+    let y = 230;
+
+    ctx.font = '20px Sans';
+
+    ctx.fillStyle = '#86efac';
+    ctx.fillText('Dungeon Name', 40, y);
+    ctx.fillText('Current Level', 360, y);
+    ctx.fillText('Target Level', 520, y);
+    ctx.fillText('Score Increase', 680, y);
+
+    y = 270;
+
+    for (const dungeon of data.dungeons) {
+        ctx.fillText(dungeon.dungeon, 40, y);
+
+        ctx.fillText(dungeon.mythic_level, 360, y);
+        ctx.fillText(dungeon.target_level, 520, y);
+        ctx.fillText(`+${Math.ceil(dungeon.potentialMinimumScore)} points`, 680, y);
+
+        // ctx.fillText(
+        //     `${dungeon.mythic_level} → ${dungeon.target_level} (+${Math.ceil(dungeon.potentialMinimumScore)})`,
+        //     520,
+        //     y
+        // );
+
+        y += 36;
+    }
+
+    return canvas.toBuffer('image/png');
+}
+
+
+const lookupDungeonFromShortname = (shortName) => {
+    const dungeons = {
+        'AA': 'Algethar Academy',
+        'ULD': 'Uldaman: Legacy of Tyr',
+        'HOI': 'Halls of Infusion',
+        'BH': 'Brackenhide Hollow',
+        'NELT': 'Neltharus',
+        'RLP': 'Ruby Life Pools',
+        'AV': 'The Azure Vault',
+        'NO': 'The Nokhud Offensive',
+    };
+
+    return dungeons[shortName] || 'Dungeon not found';
+};
+
 const arrayDiff = (firstArray, ...arrays) => {
     const allArrays = [].concat.apply([], arrays);
 
@@ -212,14 +321,17 @@ const arrayDiff = (firstArray, ...arrays) => {
 };
 
 module.exports = {
+    lookupDungeonFromShortname,
     buildTableFromJson,
     sendStructuredResponseToUser,
     sendEmbeddedMessage,
     getDungeonScore,
     sortDungeonsBy,
+    prepareMessage,
     getKeystoneLevelToRun,
     getNumAffixesForLevel,
     arrayDiff,
     sendStructuredResponseToUserViaSlashCommand,
-    getHelpJson
+    getHelpJson,
+    generateMythicImage
 };

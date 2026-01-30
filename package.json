@@ -14,6 +14,7 @@
   "dependencies": {
     "@discordjs/builders": "^0.9.0",
     "@discordjs/rest": "^0.1.0-canary.0",
+    "@napi-rs/canvas": "^0.1.89",
     "ascii-table": "^0.0.9",
     "axios": "^0.24.0",
     "discord-api-types": "^0.25.2",
